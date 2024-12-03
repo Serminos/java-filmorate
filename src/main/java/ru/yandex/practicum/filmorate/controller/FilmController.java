@@ -1,6 +1,8 @@
 package ru.yandex.practicum.filmorate.controller;
 
 import jakarta.validation.Valid;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -12,28 +14,37 @@ import java.time.LocalDate;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 @RestController
 @RequestMapping(value = "/films")
 public class FilmController {
+    private static final Logger log = LoggerFactory.getLogger(FilmController.class);
     private HashMap<Long, Film> films = new HashMap();
     private static final LocalDate START_FILMS = LocalDate.of(1895, 12, 28);
 
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public Map<String, String> handleValidationExceptions(
-            MethodArgumentNotValidException ex) {
+    public Map<String, String> handleValidationExceptions(MethodArgumentNotValidException ex) {
         Map<String, String> errors = new HashMap<>();
         ex.getBindingResult().getAllErrors().forEach((error) -> {
             String fieldName = ((FieldError) error).getField();
             String errorMessage = error.getDefaultMessage();
             errors.put(fieldName, errorMessage);
         });
+        Film film = (Film) ex.getBindingResult().getTarget();
+        String metodName = Objects.requireNonNull(ex.getParameter().getMethod()).getName();
+        log.info("Ошибка валидации данных [{}] - [{}]", metodName, ex.getParameter().getParameterName());
+        if (film != null) {
+            log.info("Ошибка валидации данных [{}] - [{}]", metodName, film);
+        }
+        log.info("Ошибка валидации данных [{}] - [{}]", metodName, errors);
         return errors;
     }
 
     @PostMapping
     public Film create(@Valid @RequestBody Film film) {
+        log.debug("Создание фильма [{}]", film);
         film.setId(getNextId());
         films.put(film.getId(), film);
         return film;
@@ -41,23 +52,12 @@ public class FilmController {
 
     @PutMapping
     public Film update(@Valid @RequestBody Film film) {
+        log.debug("Обновление фильма [{}]", film);
         if (films.containsKey(film.getId())) {
-            Film oldFilm = films.get(film.getId());
-            if (film.getName() == null) {
-                film.setName(oldFilm.getName());
-            }
-            if (film.getDescription() == null) {
-                film.setDescription(oldFilm.getDescription());
-            }
-            if (film.getDuration() == null || film.getDuration() == 0) {
-                film.setDuration(oldFilm.getDuration());
-            }
-            if (film.getReleaseDate() == null) {
-                film.setReleaseDate(oldFilm.getReleaseDate());
-            }
             films.put(film.getId(), film);
             return film;
         } else {
+            log.info("Не найден фильм с id [{}]", film.getId());
             throw new NotFoundException("Фильм не найден.");
         }
     }

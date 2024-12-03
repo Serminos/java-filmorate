@@ -2,26 +2,26 @@ package ru.yandex.practicum.filmorate.controller;
 
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.FieldError;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.Exception.NotFoundException;
+import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.User;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 
 @RestController
-@Slf4j
 @RequestMapping(value = "/users")
 @Validated
 public class UserController {
+    private static final Logger log = LoggerFactory.getLogger(FilmController.class);
     private final HashMap<Long, User> users = new HashMap();
 
     @ResponseStatus(HttpStatus.BAD_REQUEST)
@@ -34,11 +34,19 @@ public class UserController {
             String errorMessage = error.getDefaultMessage();
             errors.put(fieldName, errorMessage);
         });
+        User user = (User) ex.getBindingResult().getTarget();
+        String metodName = Objects.requireNonNull(ex.getParameter().getMethod()).getName();
+        log.info("Ошибка валидации данных [{}] - [{}]", metodName, ex.getParameter().getParameterName());
+        if (user != null) {
+            log.info("Ошибка валидации данных [{}] - [{}]", metodName, user);
+        }
+        log.info("Ошибка валидации данных [{}] - [{}]", metodName, errors);
         return errors;
     }
 
     @PostMapping
     public User create(@Valid @RequestBody User user) {
+        log.debug("Создание пользователя [{}]", user);
         user.setId(getNextId());
         if (user.getName() == null) {
             user.setName(user.getLogin());
@@ -49,24 +57,14 @@ public class UserController {
 
     @PutMapping
     public User update(@Valid @RequestBody User user) {
+        log.debug("Обновление пользователя [{}]", user);
         if (users.containsKey(user.getId())) {
-            User oldUser = users.get(user.getId());
-            if (user.getName() == null) {
-                user.setName(oldUser.getName());
-            }
-            if (user.getLogin() == null) {
-                user.setLogin(oldUser.getLogin());
-            }
-            if (user.getEmail() == null) {
-                user.setEmail(oldUser.getEmail());
-            }
-            if (user.getBirthday() == null) {
-                user.setBirthday(oldUser.getBirthday());
-            }
-            users.remove(user.getId());
             users.put(user.getId(), user);
             return user;
-        } else throw new NotFoundException("Пользователь не найден.");
+        } else {
+            log.info("Не найден пользователь с id [{}]", user.getId());
+            throw new NotFoundException("Пользователь не найден.");
+        }
     }
 
     @GetMapping
