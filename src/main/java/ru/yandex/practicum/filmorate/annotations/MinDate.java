@@ -1,7 +1,6 @@
 package ru.yandex.practicum.filmorate.annotations;
 
 import jakarta.validation.Constraint;
-import jakarta.validation.constraints.Past;
 import ru.yandex.practicum.filmorate.annotations.impl.MinimumDateValidator;
 
 import java.lang.annotation.Documented;
