@@ -10,6 +10,7 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import ru.yandex.practicum.filmorate.FilmorateApplication;
 import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.service.UserService;
 
 import java.time.LocalDate;
 
@@ -27,6 +28,8 @@ class UserControllerTest {
     @Autowired
     private UserController userController;
     @Autowired
+    private UserService userService;
+    @Autowired
     private ObjectMapper objectMapper;
 
     User testUser;
@@ -40,7 +43,7 @@ class UserControllerTest {
                 .login("login")
                 .birthday(LocalDate.now().minusYears(20))
                 .build();
-        userController.clear();
+        userService.clear();
     }
 
     @Test

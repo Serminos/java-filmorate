@@ -3,18 +3,23 @@ package ru.yandex.practicum.filmorate.model;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.Size;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
-
+import lombok.NoArgsConstructor;
 import ru.yandex.practicum.filmorate.annotations.MinDate;
 
 import java.time.LocalDate;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * Film.
  */
 @Data
 @Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class Film {
     long id;
     @NotBlank(message = "Название фильма не может быть пустым;")
@@ -25,4 +30,14 @@ public class Film {
     LocalDate releaseDate;
     @Positive(message = "Продолжительность фильма должна быть положительным числом")
     Long duration;
+    Set<Long> likes = new HashSet<>();
+
+    public Film(long id, String name, String description, LocalDate releaseDate, Long duration) {
+        this.id = id;
+        this.name = name;
+        this.description = description;
+        this.releaseDate = releaseDate;
+        this.duration = duration;
+        this.likes = new HashSet<>();
+    }
 }

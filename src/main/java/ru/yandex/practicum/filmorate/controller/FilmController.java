@@ -3,81 +3,56 @@ package ru.yandex.practicum.filmorate.controller;
 import jakarta.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.http.HttpStatus;
-import org.springframework.validation.FieldError;
-import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
-import ru.yandex.practicum.filmorate.Exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.service.FilmService;
 
-import java.time.LocalDate;
 import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
+import java.util.List;
 
 @RestController
 @RequestMapping(value = "/films")
 public class FilmController {
     private static final Logger log = LoggerFactory.getLogger(FilmController.class);
-    private HashMap<Long, Film> films = new HashMap();
-    private static final LocalDate START_FILMS = LocalDate.of(1895, 12, 28);
+    private final FilmService filmService;
 
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
-    @ExceptionHandler(MethodArgumentNotValidException.class)
-    public Map<String, String> handleValidationExceptions(MethodArgumentNotValidException ex) {
-        Map<String, String> errors = new HashMap<>();
-        ex.getBindingResult().getAllErrors().forEach((error) -> {
-            String fieldName = ((FieldError) error).getField();
-            String errorMessage = error.getDefaultMessage();
-            errors.put(fieldName, errorMessage);
-        });
-        Film film = (Film) ex.getBindingResult().getTarget();
-        String metodName = Objects.requireNonNull(ex.getParameter().getMethod()).getName();
-        log.info("Ошибка валидации данных [{}] - [{}]", metodName, ex.getParameter().getParameterName());
-        if (film != null) {
-            log.info("Ошибка валидации данных [{}] - [{}]", metodName, film);
-        }
-        log.info("Ошибка валидации данных [{}] - [{}]", metodName, errors);
-        return errors;
+    @Autowired
+    public FilmController(FilmService filmService) {
+        this.filmService = filmService;
     }
 
     @PostMapping
     public Film create(@Valid @RequestBody Film film) {
         log.debug("Создание фильма [{}]", film);
-        film.setId(getNextId());
-        films.put(film.getId(), film);
+        film = filmService.create(film);
         return film;
     }
 
     @PutMapping
     public Film update(@Valid @RequestBody Film film) {
         log.debug("Обновление фильма [{}]", film);
-        if (films.containsKey(film.getId())) {
-            films.put(film.getId(), film);
-            return film;
-        } else {
-            log.info("Не найден фильм с id [{}]", film.getId());
-            throw new NotFoundException("Фильм не найден.");
-        }
+        film = filmService.update(film);
+        return film;
     }
 
     @GetMapping
     public Collection<Film> all() {
-        return films.values();
+        return filmService.all();
     }
 
-    // вспомогательный метод для генерации идентификатора нового пользователя
-    private long getNextId() {
-        long currentMaxId = films.keySet()
-                .stream()
-                .mapToLong(id -> id)
-                .max()
-                .orElse(0);
-        return ++currentMaxId;
+    @PutMapping("/{id}/like/{userId}")
+    public void addLike(@PathVariable long id, @PathVariable long userId) {
+        filmService.addLike(id, userId);
     }
 
-    public void clear() {
-        films.clear();
+    @DeleteMapping("/{id}/like/{userId}")
+    public void deleteLike(@PathVariable long id, @PathVariable long userId) {
+        filmService.deleteLike(id, userId);
+    }
+
+    @GetMapping("/popular")
+    public List<Film> popularFilms(@RequestParam(value = "count", defaultValue = "10") long count) {
+        return filmService.findPopularFilms(count);
     }
 }

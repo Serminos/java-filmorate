@@ -10,6 +10,7 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import ru.yandex.practicum.filmorate.FilmorateApplication;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.service.FilmService;
 
 import java.time.LocalDate;
 
@@ -25,7 +26,9 @@ class FilmControllerTest {
     @Autowired
     private MockMvc mockMvc;
     @Autowired
-    FilmController filmController = new FilmController();
+    private FilmService filmService;
+    @Autowired
+    FilmController filmController;
 
     @Autowired
     private ObjectMapper objectMapper;
@@ -40,7 +43,7 @@ class FilmControllerTest {
                 .releaseDate(LocalDate.now().minusYears(1))
                 .duration(120L)
                 .build();
-        filmController.clear();
+        filmService.clear();
     }
 
     @Test
