@@ -37,4 +37,8 @@ public class User {
         this.birthday = birthday;
         this.friendsIds = new HashSet<>();
     }
+
+    public void setFriendsIds(Set<Long> friendsIds) {
+        this.friendsIds = friendsIds != null ? friendsIds : new HashSet<>();
+    }
 }

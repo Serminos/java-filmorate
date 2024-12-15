@@ -10,10 +10,14 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import ru.yandex.practicum.filmorate.FilmorateApplication;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.service.FilmService;
+import ru.yandex.practicum.filmorate.service.UserService;
 
 import java.time.LocalDate;
+import java.util.Arrays;
 
+import static org.hamcrest.Matchers.is;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -29,10 +33,15 @@ class FilmControllerTest {
     private FilmService filmService;
     @Autowired
     FilmController filmController;
+    @Autowired
+    private UserController userController;
+    @Autowired
+    private UserService userService;
 
     @Autowired
     private ObjectMapper objectMapper;
     Film testFilm;
+    User testUser;
 
     @BeforeEach
     void beforeEachTest() {
@@ -43,7 +52,15 @@ class FilmControllerTest {
                 .releaseDate(LocalDate.now().minusYears(1))
                 .duration(120L)
                 .build();
+        testUser = User.builder()
+                .id(1)
+                .email("norm@email.ru")
+                .name("name")
+                .login("login")
+                .birthday(LocalDate.now().minusYears(20))
+                .build();
         filmService.clear();
+        userService.clear();
     }
 
     @Test
@@ -156,7 +173,7 @@ class FilmControllerTest {
     }
 
     @Test
-    void create_shouldNotGenerateExceptionWhenDurationNegativeOrZero() throws Exception {
+    void create_shouldGenerateExceptionWhenDurationNegativeOrZero() throws Exception {
         testFilm.setDuration(-1L);
         mockMvc.perform(post("/films")
                         .content(objectMapper.writeValueAsString(testFilm))
@@ -170,5 +187,151 @@ class FilmControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                 )
                 .andExpect(status().is4xxClientError());
+    }
+
+    @Test
+    void addLike() throws Exception {
+        mockMvc.perform(post("/users")
+                        .content(objectMapper.writeValueAsString(testUser))
+                        .contentType(MediaType.APPLICATION_JSON)
+                )
+                .andExpect(status().isOk());
+        mockMvc.perform(post("/films")
+                        .content(objectMapper.writeValueAsString(testFilm))
+                        .contentType(MediaType.APPLICATION_JSON)
+                )
+                .andExpect(status().isOk());
+
+        mockMvc.perform(put("/films/{id}/like/{userId}", testFilm.getId(), testUser.getId()))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    void addLike_shouldGenerateExceptionWhenFilmOrUserNotFound() throws Exception {
+        mockMvc.perform(post("/users")
+                        .content(objectMapper.writeValueAsString(testUser))
+                        .contentType(MediaType.APPLICATION_JSON)
+                )
+                .andExpect(status().is2xxSuccessful());
+        mockMvc.perform(post("/films")
+                        .content(objectMapper.writeValueAsString(testFilm))
+                        .contentType(MediaType.APPLICATION_JSON)
+                )
+                .andExpect(status().is2xxSuccessful());
+
+        mockMvc.perform(put("/films/{id}/like/{userId}", testFilm.getId(), testUser.getId() + 10))
+                .andExpect(status().is4xxClientError());
+        mockMvc.perform(put("/films/{id}/like/{userId}", testFilm.getId() + 10, testUser.getId()))
+                .andExpect(status().is4xxClientError());
+    }
+
+    @Test
+    void deleteLike() throws Exception {
+        mockMvc.perform(post("/users")
+                        .content(objectMapper.writeValueAsString(testUser))
+                        .contentType(MediaType.APPLICATION_JSON)
+                )
+                .andExpect(status().isOk());
+        mockMvc.perform(post("/films")
+                        .content(objectMapper.writeValueAsString(testFilm))
+                        .contentType(MediaType.APPLICATION_JSON)
+                )
+                .andExpect(status().isOk());
+        mockMvc.perform(put("/films/{id}/like/{userId}", testFilm.getId(), testUser.getId()))
+                .andExpect(status().isOk());
+
+        mockMvc.perform(delete("/films/{id}/like/{userId}", testFilm.getId(), testUser.getId()))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    void deleteLike_shouldGenerateExceptionWhenFilmOrUserNotFound() throws Exception {
+        mockMvc.perform(post("/users")
+                        .content(objectMapper.writeValueAsString(testUser))
+                        .contentType(MediaType.APPLICATION_JSON)
+                )
+                .andExpect(status().isOk());
+        mockMvc.perform(post("/films")
+                        .content(objectMapper.writeValueAsString(testFilm))
+                        .contentType(MediaType.APPLICATION_JSON)
+                )
+                .andExpect(status().isOk());
+        mockMvc.perform(put("/films/{id}/like/{userId}", testFilm.getId(), testUser.getId()))
+                .andExpect(status().isOk());
+
+        mockMvc.perform(delete("/films/{id}/like/{userId}", testFilm.getId(), testUser.getId() + 10))
+                .andExpect(status().is4xxClientError());
+        mockMvc.perform(delete("/films/{id}/like/{userId}", testFilm.getId() + 10, testUser.getId()))
+                .andExpect(status().is4xxClientError());
+    }
+
+    @Test
+    void popularFilms_shouldReturn10Items() throws Exception {
+        for (int i = 1; i < 100; i++) {
+            mockMvc.perform(post("/users")
+                            .content(objectMapper.writeValueAsString(testUser))
+                            .contentType(MediaType.APPLICATION_JSON)
+                    )
+                    .andExpect(status().isOk());
+            mockMvc.perform(post("/films")
+                            .content(objectMapper.writeValueAsString(testFilm))
+                            .contentType(MediaType.APPLICATION_JSON)
+                    )
+                    .andExpect(status().isOk());
+            mockMvc.perform(put("/films/{id}/like/{userId}", i, i))
+                    .andExpect(status().isOk());
+        }
+
+        mockMvc.perform(get("/films/popular"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(10));
+    }
+
+    @Test
+    void popularFilms_shouldReturn15Items() throws Exception {
+        for (int i = 1; i < 100; i++) {
+            mockMvc.perform(post("/users")
+                            .content(objectMapper.writeValueAsString(testUser))
+                            .contentType(MediaType.APPLICATION_JSON)
+                    )
+                    .andExpect(status().isOk());
+            mockMvc.perform(post("/films")
+                            .content(objectMapper.writeValueAsString(testFilm))
+                            .contentType(MediaType.APPLICATION_JSON)
+                    )
+                    .andExpect(status().isOk());
+            mockMvc.perform(put("/films/{id}/like/{userId}", i, i))
+                    .andExpect(status().isOk());
+        }
+
+        mockMvc.perform(get("/films/popular").param("count", "15"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(15));
+    }
+
+    @Test
+    void popularFilms_shouldReturnOnlyPopularFilms() throws Exception {
+        for (int i = 1; i < 100; i++) {
+            mockMvc.perform(post("/users")
+                            .content(objectMapper.writeValueAsString(testUser))
+                            .contentType(MediaType.APPLICATION_JSON)
+                    )
+                    .andExpect(status().isOk());
+            mockMvc.perform(post("/films")
+                            .content(objectMapper.writeValueAsString(testFilm))
+                            .contentType(MediaType.APPLICATION_JSON)
+                    )
+                    .andExpect(status().isOk());
+            if (i <= 11) {
+                mockMvc.perform(put("/films/{id}/like/{userId}", i, i))
+                        .andExpect(status().isOk());
+            }
+        }
+
+        mockMvc.perform(get("/films/popular"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(10))
+                .andExpect(jsonPath("$.[*].id").value(
+                        is(Arrays.asList(1, 2, 3, 4, 5, 6, 7, 8, 9, 10))));
     }
 }

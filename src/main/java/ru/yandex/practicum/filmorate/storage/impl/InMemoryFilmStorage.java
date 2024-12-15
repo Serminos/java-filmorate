@@ -60,8 +60,6 @@ public class InMemoryFilmStorage implements FilmStorage {
         return true;
     }
 
-
-
     public void clear() {
         films.clear();
     }

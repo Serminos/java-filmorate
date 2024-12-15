@@ -40,4 +40,8 @@ public class Film {
         this.duration = duration;
         this.likes = new HashSet<>();
     }
+
+    public void setLikes(Set<Long> likes) {
+        this.likes = likes != null ? likes : new HashSet<>();
+    }
 }

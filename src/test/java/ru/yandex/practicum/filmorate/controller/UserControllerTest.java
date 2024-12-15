@@ -201,4 +201,195 @@ class UserControllerTest {
                 .andExpect(jsonPath("$.[0].birthday").value(LocalDate.now().minusYears(20).toString()));
 
     }
+
+    @Test
+    void addUserFriend() throws Exception {
+        mockMvc.perform(post("/users")
+                .content(objectMapper.writeValueAsString(testUser))
+                .contentType(MediaType.APPLICATION_JSON)
+        );
+        User friend = User.builder()
+                .id(testUser.getId() + 1)
+                .email("user_friend@email.ru")
+                .name("user friend")
+                .login("user_friend")
+                .birthday(LocalDate.now().minusYears(50))
+                .build();
+        mockMvc.perform(post("/users")
+                .content(objectMapper.writeValueAsString(testUser))
+                .contentType(MediaType.APPLICATION_JSON)
+        );
+        mockMvc.perform(post("/users")
+                .content(objectMapper.writeValueAsString(friend))
+                .contentType(MediaType.APPLICATION_JSON)
+        );
+
+        mockMvc.perform(put("/users/{id}/friends/{friendId}", testUser.getId(), friend.getId())
+                )
+                .andExpect(status().is2xxSuccessful());
+    }
+
+    @Test
+    void addUserFriend_GenerateExceptionWhenUserOrFriendNotExists() throws Exception {
+        mockMvc.perform(post("/users")
+                .content(objectMapper.writeValueAsString(testUser))
+                .contentType(MediaType.APPLICATION_JSON)
+        );
+        User friend = User.builder()
+                .id(testUser.getId() + 1)
+                .email("user_friend@email.ru")
+                .name("user friend")
+                .login("user_friend")
+                .birthday(LocalDate.now().minusYears(50))
+                .build();
+        mockMvc.perform(post("/users")
+                .content(objectMapper.writeValueAsString(testUser))
+                .contentType(MediaType.APPLICATION_JSON)
+        );
+        mockMvc.perform(post("/users")
+                .content(objectMapper.writeValueAsString(friend))
+                .contentType(MediaType.APPLICATION_JSON)
+        );
+
+        mockMvc.perform(put("/users/{id}/friends/{friendId}", testUser.getId() + 10, friend.getId())
+                )
+                .andExpect(status().is4xxClientError());
+        mockMvc.perform(put("/users/{id}/friends/{friendId}", testUser.getId(), friend.getId() + 10)
+                )
+                .andExpect(status().is4xxClientError());
+    }
+
+    @Test
+    void deleteUserFriend() throws Exception {
+        mockMvc.perform(post("/users")
+                .content(objectMapper.writeValueAsString(testUser))
+                .contentType(MediaType.APPLICATION_JSON)
+        );
+        User friend = User.builder()
+                .id(testUser.getId() + 1)
+                .email("user_friend@email.ru")
+                .name("user friend")
+                .login("user_friend")
+                .birthday(LocalDate.now().minusYears(50))
+                .build();
+        mockMvc.perform(post("/users")
+                .content(objectMapper.writeValueAsString(testUser))
+                .contentType(MediaType.APPLICATION_JSON)
+        );
+        mockMvc.perform(post("/users")
+                .content(objectMapper.writeValueAsString(friend))
+                .contentType(MediaType.APPLICATION_JSON)
+        );
+
+        mockMvc.perform(put("/users/{id}/friends/{friendId}", testUser.getId(), friend.getId())
+                )
+                .andExpect(status().isOk());
+        mockMvc.perform(delete("/users/{id}/friends/{friendId}", testUser.getId(), friend.getId())
+                )
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    void deleteUserFriend_GenerateExceptionWhenUserOrFriendNotExists() throws Exception {
+        mockMvc.perform(post("/users")
+                .content(objectMapper.writeValueAsString(testUser))
+                .contentType(MediaType.APPLICATION_JSON)
+        );
+        User friend = User.builder()
+                .id(testUser.getId() + 1)
+                .email("user_friend@email.ru")
+                .name("user friend")
+                .login("user_friend")
+                .birthday(LocalDate.now().minusYears(50))
+                .build();
+        mockMvc.perform(post("/users")
+                .content(objectMapper.writeValueAsString(testUser))
+                .contentType(MediaType.APPLICATION_JSON)
+        );
+        mockMvc.perform(post("/users")
+                .content(objectMapper.writeValueAsString(friend))
+                .contentType(MediaType.APPLICATION_JSON)
+        );
+
+        mockMvc.perform(put("/users/{id}/friends/{friendId}", testUser.getId(), friend.getId())
+                )
+                .andExpect(status().isOk());
+        mockMvc.perform(delete("/users/{id}/friends/{friendId}", testUser.getId() + 10, friend.getId())
+                )
+                .andExpect(status().is4xxClientError());
+        mockMvc.perform(delete("/users/{id}/friends/{friendId}", testUser.getId(), friend.getId() + 10)
+                )
+                .andExpect(status().is4xxClientError());
+    }
+
+
+    @Test
+    void getUserFriends() throws Exception {
+        mockMvc.perform(post("/users")
+                .content(objectMapper.writeValueAsString(testUser))
+                .contentType(MediaType.APPLICATION_JSON)
+        );
+        User friend = User.builder()
+                .id(testUser.getId() + 1)
+                .email("user_friend@email.ru")
+                .name("user friend")
+                .login("user_friend")
+                .birthday(LocalDate.now().minusYears(50))
+                .build();
+        mockMvc.perform(post("/users")
+                .content(objectMapper.writeValueAsString(friend))
+                .contentType(MediaType.APPLICATION_JSON)
+        );
+        mockMvc.perform(put("/users/{id}/friends/{friendId}", testUser.getId(), friend.getId())
+                )
+                .andExpect(status().is2xxSuccessful());
+
+        mockMvc.perform(get("/users/{id}/friends", testUser.getId())
+                )
+                .andExpect(status().is2xxSuccessful())
+                .andExpect(jsonPath("$.[0].id").value(friend.getId()));
+    }
+
+    @Test
+    void commonFriends() throws Exception {
+        mockMvc.perform(post("/users")
+                .content(objectMapper.writeValueAsString(testUser))
+                .contentType(MediaType.APPLICATION_JSON)
+        );
+        User friend = User.builder()
+                .id(testUser.getId() + 1)
+                .email("user_friend@email.ru")
+                .name("user friend")
+                .login("user_friend")
+                .birthday(LocalDate.now().minusYears(50))
+                .build();
+        User commonFriend = User.builder()
+                .id(friend.getId() + 1)
+                .email("user_friend@email.ru")
+                .name("user friend")
+                .login("user_friend")
+                .birthday(LocalDate.now().minusYears(50))
+                .build();
+        mockMvc.perform(post("/users")
+                .content(objectMapper.writeValueAsString(friend))
+                .contentType(MediaType.APPLICATION_JSON)
+        );
+        mockMvc.perform(post("/users")
+                .content(objectMapper.writeValueAsString(commonFriend))
+                .contentType(MediaType.APPLICATION_JSON)
+        );
+        mockMvc.perform(put("/users/{id}/friends/{friendId}", testUser.getId(), commonFriend.getId())
+                )
+                .andExpect(status().is2xxSuccessful());
+        mockMvc.perform(put("/users/{id}/friends/{friendId}", friend.getId(), commonFriend.getId())
+                )
+                .andExpect(status().is2xxSuccessful());
+
+
+        mockMvc.perform(get("/users/{id}/friends/common/{friendId}", testUser.getId(), friend.getId())
+                )
+                .andExpect(status().is2xxSuccessful())
+                .andExpect(jsonPath("$.length()").value(1))
+                .andExpect(jsonPath("$.[0].id").value(commonFriend.getId()));
+    }
 }
