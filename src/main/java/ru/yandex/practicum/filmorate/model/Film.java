@@ -21,7 +21,7 @@ import java.util.Set;
 @NoArgsConstructor
 @AllArgsConstructor
 public class Film {
-    long id;
+    Long id;
     @NotBlank(message = "Название фильма не может быть пустым;")
     String name;
     @Size(max = 200, message = "Максимальная длина описания фильма — 200 символов")
@@ -31,8 +31,10 @@ public class Film {
     @Positive(message = "Продолжительность фильма должна быть положительным числом")
     Long duration;
     Set<Long> likes = new HashSet<>();
+    Set<Genre> genre = new HashSet<>();
+    RatingMpa ratingMpa;
 
-    public Film(long id, String name, String description, LocalDate releaseDate, Long duration) {
+    public Film(Long id, String name, String description, LocalDate releaseDate, Long duration) {
         this.id = id;
         this.name = name;
         this.description = description;

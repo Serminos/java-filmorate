@@ -17,7 +17,7 @@ import java.util.Set;
 @NoArgsConstructor
 @AllArgsConstructor
 public class User {
-    long id;
+    Long id;
     @Email(message = "Электронная почта не может быть пустой и должна содержать символ @")
     @NotNull(message = "Электронная почта не может быть пустой и должна содержать символ @")
     String email;
@@ -29,7 +29,7 @@ public class User {
     LocalDate birthday;
     Set<Long> friendsIds = new HashSet<>();
 
-    public User(long id, String email, String login, String name, LocalDate birthday) {
+    public User(Long id, String email, String login, String name, LocalDate birthday) {
         this.id = id;
         this.email = email;
         this.login = login;
