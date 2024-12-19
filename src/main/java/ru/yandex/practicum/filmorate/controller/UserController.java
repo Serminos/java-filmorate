@@ -3,16 +3,14 @@ package ru.yandex.practicum.filmorate.controller;
 import jakarta.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.http.HttpStatus;
-import org.springframework.validation.FieldError;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.*;
-import ru.yandex.practicum.filmorate.Exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.service.UserService;
 
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.Collection;
+import java.util.List;
 
 
 @RestController
@@ -20,76 +18,47 @@ import java.util.stream.Collectors;
 @Validated
 public class UserController {
     private static final Logger log = LoggerFactory.getLogger(FilmController.class);
-    private final HashMap<Long, User> users = new HashMap();
+    UserService userService;
 
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
-    @ExceptionHandler(MethodArgumentNotValidException.class)
-    public Map<String, String> handleValidationExceptions(
-            MethodArgumentNotValidException ex) {
-        Map<String, String> errors = new HashMap<>();
-        ex.getBindingResult().getAllErrors().forEach((error) -> {
-            String fieldName = ((FieldError) error).getField();
-            String errorMessage = error.getDefaultMessage();
-            errors.put(fieldName, errorMessage);
-        });
-        User user = (User) ex.getBindingResult().getTarget();
-        String metodName = Objects.requireNonNull(ex.getParameter().getMethod()).getName();
-        log.info("Ошибка валидации данных [{}] - [{}]", metodName, ex.getParameter().getParameterName());
-        if (user != null) {
-            log.info("Ошибка валидации данных [{}] - [{}]", metodName, user);
-        }
-        log.info("Ошибка валидации данных [{}] - [{}]", metodName, errors);
-        return errors;
+    @Autowired
+    public UserController(UserService userService) {
+        this.userService = userService;
     }
 
     @PostMapping
     public User create(@Valid @RequestBody User user) {
         log.debug("Создание пользователя [{}]", user);
-        user.setId(getNextId());
-        if (user.getName() == null) {
-            user.setName(user.getLogin());
-        }
-        users.put(user.getId(), user);
-        return user;
+        return userService.create(user);
     }
 
     @PutMapping
     public User update(@Valid @RequestBody User user) {
         log.debug("Обновление пользователя [{}]", user);
-        if (users.containsKey(user.getId())) {
-            users.put(user.getId(), user);
-            return user;
-        } else {
-            log.info("Не найден пользователь с id [{}]", user.getId());
-            throw new NotFoundException("Пользователь не найден.");
-        }
+        return userService.update(user);
     }
 
     @GetMapping
     public Collection<User> all() {
-        Collection<User> results = users.values().stream()
-                .map(e -> User.builder()
-                        .id(e.getId())
-                        .email(e.getEmail())
-                        .login(e.getLogin())
-                        .name(e.getName().isBlank() ? e.getEmail() : e.getName())
-                        .birthday(e.getBirthday())
-                        .build()
-                ).collect(Collectors.toCollection(ArrayList::new));
-        return users.values();
+        return userService.all();
     }
 
-    // вспомогательный метод для генерации идентификатора нового пользователя
-    private long getNextId() {
-        long currentMaxId = users.keySet()
-                .stream()
-                .mapToLong(id -> id)
-                .max()
-                .orElse(0);
-        return ++currentMaxId;
+    @PutMapping("/{id}/friends/{friendId}")
+    public void addUserFriend(@PathVariable long id, @PathVariable long friendId) {
+        userService.addFriend(id, friendId);
     }
 
-    public void clear() {
-        users.clear();
+    @DeleteMapping("/{id}/friends/{friendId}")
+    public void deleteUserFriend(@PathVariable long id, @PathVariable long friendId) {
+        userService.deleteFriend(id, friendId);
+    }
+
+    @GetMapping("/{id}/friends")
+    public List<User> getUserFriends(@PathVariable long id) {
+        return userService.getFriends(id);
+    }
+
+    @GetMapping("/{id}/friends/common/{friendId}")
+    public List<User> commonFriends(@PathVariable long id, @PathVariable long friendId) {
+        return userService.commonFriends(id, friendId);
     }
 }
