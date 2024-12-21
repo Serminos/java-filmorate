@@ -1,14 +1,14 @@
 package ru.yandex.practicum.filmorate.model;
 
-import jakarta.validation.constraints.NotNull;
+import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.Setter;
+import lombok.NoArgsConstructor;
 
 @Data
-@Setter
+@AllArgsConstructor
+@NoArgsConstructor
 public class RatingMpa {
     Long ratingMpaId;
-    @NotNull(message = "Рейтинг должен иметь название")
     String name;
     String description;
 }

@@ -1,17 +1,18 @@
-package ru.yandex.practicum.filmorate.storage.impl;
+package ru.yandex.practicum.filmorate.storage.impl.inmemory;
 
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
-import ru.yandex.practicum.filmorate.Exception.NotFoundException;
+import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.UserStorage;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 @Component
+@Qualifier("inMemoryUserStorage")
 public class InMemoryUserStorage implements UserStorage {
     private final HashMap<Long, User> users = new HashMap<>();
 
@@ -39,14 +40,6 @@ public class InMemoryUserStorage implements UserStorage {
             throw new NotFoundException("Пользователь не найден");
         }
         return users.get(userId);
-    }
-
-    @Override
-    public Set<Long> getFriendsIds(long userId) {
-        if (users.isEmpty() || !users.containsKey(userId)) {
-            throw new NotFoundException("Пользователь не найден");
-        }
-        return users.get(userId).getFriendsIds();
     }
 
     public Collection<User> all() {
