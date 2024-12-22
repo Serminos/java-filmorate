@@ -336,14 +336,13 @@ class UserControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
         ).andReturn();
         String jsonUser2 = userResult2.getResponse().getContentAsString();
-        UserDto userDto2 = objectMapper.readValue(jsonUser2, UserDto.class);
-        UserDto friend = getNewUserDto();
+        UserDto friend = objectMapper.readValue(jsonUser2, UserDto.class);
 
-        mockMvc.perform(put("/users/{id}/friends/{friendId}", userDto2.getId(), friend.getId())
+        mockMvc.perform(put("/users/{id}/friends/{friendId}", userDto1.getId(), friend.getId())
                 )
                 .andExpect(status().is2xxSuccessful());
 
-        mockMvc.perform(get("/users/{id}/friends", userDto2.getId())
+        mockMvc.perform(get("/users/{id}/friends", userDto1.getId())
                 )
                 .andExpect(status().is2xxSuccessful())
                 .andExpect(jsonPath("$.[0].id").value(friend.getId()));
