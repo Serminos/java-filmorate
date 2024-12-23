@@ -25,15 +25,15 @@ public class UserController {
     }
 
     @PostMapping
-    public UserDto create(@Valid @RequestBody UserDto user) {
-        log.debug("Создание пользователя [{}]", user);
-        return userService.create(user);
+    public UserDto create(@Valid @RequestBody UserDto userDto) {
+        log.debug("Создание пользователя [{}]", userDto);
+        return userService.create(userDto);
     }
 
     @PutMapping
-    public UserDto update(@Valid @RequestBody UserDto user) {
-        log.debug("Обновление пользователя [{}]", user);
-        return userService.update(user);
+    public UserDto update(@Valid @RequestBody UserDto userDto) {
+        log.debug("Обновление пользователя [{}]", userDto);
+        return userService.update(userDto);
     }
 
     @GetMapping
@@ -43,11 +43,13 @@ public class UserController {
 
     @PutMapping("/{id}/friends/{friendId}")
     public void addUserFriend(@PathVariable long id, @PathVariable long friendId) {
+        log.debug("Добавление друзей [{}] - [{}]", id, friendId);
         userService.addFriend(id, friendId);
     }
 
     @DeleteMapping("/{id}/friends/{friendId}")
     public void deleteUserFriend(@PathVariable long id, @PathVariable long friendId) {
+        log.debug("Удаление друзей [{}] - [{}]", id, friendId);
         userService.deleteFriend(id, friendId);
     }
 

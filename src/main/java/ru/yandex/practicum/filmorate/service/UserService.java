@@ -30,10 +30,14 @@ public class UserService {
         return UserMapper.mapToUserDto(userStorage.create(UserMapper.mapToUser(user)));
     }
 
-    public UserDto update(UserDto user) {
-        if (userStorage.findById(user.getId()) == null) {
-            throw new NotFoundException("Пользователь не найден");
+    private void checkUserExists(long userId) {
+        if (userStorage.findById(userId) == null) {
+            throw new NotFoundException("Не найден пользователь с ID - [" + userId + "]");
         }
+    }
+
+    public UserDto update(UserDto user) {
+        checkUserExists(user.getId());
         return UserMapper.mapToUserDto(userStorage.update(UserMapper.mapToUser(user)));
     }
 
@@ -50,20 +54,12 @@ public class UserService {
         userStorage.clear();
     }
 
-    private void checkUsers(long userId, long friendId) {
-        if (userStorage.findById(userId) == null) {
-            throw new NotFoundException("Не найден пользователь с ID - [" + userId + "]");
-        }
-        if (userStorage.findById(friendId) == null) {
-            throw new NotFoundException("Не найден пользователь с ID - [" + friendId + "]");
-        }
-    }
-
     public void addFriend(long userId, long friendId) {
         if (userId == friendId) {
             throw new NotFoundException("Нельзя добавить себя в друзья");
         }
-        checkUsers(userId, friendId);
+        checkUserExists(userId);
+        checkUserExists(friendId);
         Friendship friendship = new Friendship(userId, friendId, false);
         friendshipStorage.add(friendship);
     }
@@ -72,13 +68,15 @@ public class UserService {
         if (userId == friendId) {
             throw new NotFoundException("Нельзя удалить себя из друзей");
         }
-        checkUsers(userId, friendId);
+        checkUserExists(userId);
+        checkUserExists(friendId);
         Friendship friendship = new Friendship(userId, friendId, false);
         friendshipStorage.remove(friendship);
     }
 
     public List<UserDto> commonFriends(long userId, long friendId) {
-        checkUsers(userId, friendId);
+        checkUserExists(userId);
+        checkUserExists(friendId);
         List<Long> commonFriendsIds = friendshipStorage.findCommonFriendId(userId, friendId);
         List<UserDto> commonFriends = new ArrayList<>();
         for (Long commonFriendId : commonFriendsIds) {
@@ -88,9 +86,7 @@ public class UserService {
     }
 
     public List<UserDto> getFriends(long userId) {
-        if (userStorage.findById(userId) == null) {
-            throw new NotFoundException("Не найден пользователь с ID - [" + userId + "]");
-        }
+        checkUserExists(userId);
         List<UserDto> friends = new ArrayList<>();
         for (Friendship friendship : friendshipStorage.findAllByFromUserId(userId)) {
             friends.add(UserMapper.mapToUserDto(userStorage.findById(friendship.getToUserId())));

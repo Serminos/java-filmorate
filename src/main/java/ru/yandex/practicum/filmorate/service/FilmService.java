@@ -76,9 +76,7 @@ public class FilmService {
     }
 
     public FilmDto update(FilmDto filmDto) {
-        if (filmStorage.findById(filmDto.getId()) == null) {
-            throw new NotFoundException("Фильм не найден.");
-        }
+        checkFilmExists(filmDto.getId());
         checkRatingMpaAndGenresFilmDto(filmDto);
         Film film = FilmMapper.mapToFilm(filmDto);
         film = filmStorage.update(film);
@@ -115,29 +113,31 @@ public class FilmService {
 
     public FilmDto getFilmById(long filmId) {
         Film film = filmStorage.findById(filmId);
-        if (film == null) {
-            throw new NotFoundException("Фильм не найден.");
-        }
+        checkFilmExists(filmId);
         return mapFilmsToFilmDtosAndAddDopInfo(Collections.singletonList(film)).get(0);
     }
 
-    public void addLike(long filmId, long userId) {
+    private void checkFilmExists(long filmId) {
         if (filmStorage.findById(filmId) == null) {
             throw new NotFoundException("Фильм не найден.");
         }
+    }
+
+    private void checkUserExists(long userId) {
         if (userStorage.findById(userId) == null) {
             throw new NotFoundException("Пользователь не найден.");
         }
+    }
+
+    public void addLike(long filmId, long userId) {
+        checkFilmExists(filmId);
+        checkUserExists(userId);
         filmUserLikeStorage.add(filmId, userId);
     }
 
     public void deleteLike(long filmId, long userId) {
-        if (filmStorage.findById(filmId) == null) {
-            throw new NotFoundException("Фильм не найден.");
-        }
-        if (userStorage.findById(userId) == null) {
-            throw new NotFoundException("Пользователь не найден.");
-        }
+        checkFilmExists(filmId);
+        checkUserExists(userId);
         filmUserLikeStorage.remove(filmId, userId);
     }
 
