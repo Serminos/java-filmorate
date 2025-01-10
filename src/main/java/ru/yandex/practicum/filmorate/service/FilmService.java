@@ -7,6 +7,7 @@ import ru.yandex.practicum.filmorate.dto.GenreDto;
 import ru.yandex.practicum.filmorate.exception.BadRequestException;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.model.FilmUserLike;
 import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.model.RatingMpa;
 import ru.yandex.practicum.filmorate.service.mapper.FilmMapper;
@@ -171,5 +172,26 @@ public class FilmService {
             filmDtos.add(filmDto);
         }
         return filmDtos;
+    }
+
+    public List<FilmDto> getCommonFilms(long userId, long friendId) {
+        List<FilmUserLike> userLikes = filmUserLikeStorage.findFilmLikeByUserId(userId);
+        List<FilmUserLike> friendLikes = filmUserLikeStorage.findFilmLikeByUserId(friendId);
+
+        Set<Long> userLikedFilmIds = userLikes.stream()
+                .map(FilmUserLike::getFilmId)
+                .collect(Collectors.toSet());
+
+        Set<Long> friendLikedFilmIds = friendLikes.stream()
+                .map(FilmUserLike::getFilmId)
+                .collect(Collectors.toSet());
+
+        userLikedFilmIds.retainAll(friendLikedFilmIds);
+
+        List<Film> films = userLikedFilmIds.stream()
+                .map(filmStorage::findById)
+                .collect(Collectors.toList());
+
+        return mapFilmsToFilmDtosAndAddDopInfo(films);
     }
 }
