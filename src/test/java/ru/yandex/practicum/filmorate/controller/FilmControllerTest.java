@@ -4,20 +4,25 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MvcResult;
 import ru.yandex.practicum.filmorate.FilmorateApplication;
-import ru.yandex.practicum.filmorate.model.Film;
-import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.dto.FilmDto;
+import ru.yandex.practicum.filmorate.dto.MpaDto;
+import ru.yandex.practicum.filmorate.dto.UserDto;
 import ru.yandex.practicum.filmorate.service.FilmService;
 import ru.yandex.practicum.filmorate.service.UserService;
 
 import java.time.LocalDate;
-import java.util.Arrays;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
 
-import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -26,41 +31,57 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
         webEnvironment = SpringBootTest.WebEnvironment.MOCK,
         classes = FilmorateApplication.class)
 @AutoConfigureMockMvc
+@AutoConfigureTestDatabase
 class FilmControllerTest {
     @Autowired
     private MockMvc mockMvc;
-    @Autowired
-    private FilmService filmService;
+
     @Autowired
     FilmController filmController;
     @Autowired
     private UserController userController;
     @Autowired
+    private FilmService filmService;
+    @Autowired
     private UserService userService;
 
     @Autowired
     private ObjectMapper objectMapper;
-    Film testFilm;
-    User testUser;
+    FilmDto testFilm;
+    UserDto testUser;
 
     @BeforeEach
     void beforeEachTest() {
-        testFilm = Film.builder()
-                .id(1)
+        String randomValue = UUID.randomUUID().toString();
+        testFilm = FilmDto.builder()
+                .id(1L)
                 .name("name")
                 .description("description")
                 .releaseDate(LocalDate.now().minusYears(1))
                 .duration(120L)
+                .mpa(new MpaDto(1L, "test", "test"))
                 .build();
-        testUser = User.builder()
-                .id(1)
-                .email("norm@email.ru")
+        testUser = UserDto.builder()
+                .id(1L)
+                .email(randomValue + "@email.ru")
                 .name("name")
-                .login("login")
+                .login(randomValue + "login")
                 .birthday(LocalDate.now().minusYears(20))
                 .build();
         filmService.clear();
         userService.clear();
+    }
+
+    private UserDto getNewUserDto() {
+        String randomValue = UUID.randomUUID().toString();
+        testUser = UserDto.builder()
+                .id(1L)
+                .email(randomValue + "@email.ru")
+                .name("name")
+                .login(randomValue + "login")
+                .birthday(LocalDate.now().minusYears(20))
+                .build();
+        return testUser;
     }
 
     @Test
@@ -79,7 +100,7 @@ class FilmControllerTest {
 
     @Test
     void update() throws Exception {
-        mockMvc.perform(post("/films")
+        MvcResult filmResult = mockMvc.perform(post("/films")
                         .content(objectMapper.writeValueAsString(testFilm))
                         .contentType(MediaType.APPLICATION_JSON)
                 )
@@ -88,12 +109,14 @@ class FilmControllerTest {
                 .andExpect(jsonPath("$.name").value(testFilm.getName()))
                 .andExpect(jsonPath("$.description").value(testFilm.getDescription()))
                 .andExpect(jsonPath("$.releaseDate").value(testFilm.getReleaseDate().toString()))
-                .andExpect(jsonPath("$.duration").value(testFilm.getDuration()));
-
-        testFilm.setName("new Name");
+                .andExpect(jsonPath("$.duration").value(testFilm.getDuration()))
+                .andReturn();
+        String jsonFilm = filmResult.getResponse().getContentAsString();
+        FilmDto filmDto = objectMapper.readValue(jsonFilm, FilmDto.class);
+        filmDto.setName("new Name");
 
         mockMvc.perform(put("/films")
-                        .content(objectMapper.writeValueAsString(testFilm))
+                        .content(objectMapper.writeValueAsString(filmDto))
                         .contentType(MediaType.APPLICATION_JSON)
                 )
                 .andExpect(status().is2xxSuccessful())
@@ -191,18 +214,23 @@ class FilmControllerTest {
 
     @Test
     void addLike() throws Exception {
-        mockMvc.perform(post("/users")
-                        .content(objectMapper.writeValueAsString(testUser))
+        MvcResult userResult = mockMvc.perform(post("/users")
+                        .content(objectMapper.writeValueAsString(getNewUserDto()))
                         .contentType(MediaType.APPLICATION_JSON)
                 )
-                .andExpect(status().isOk());
-        mockMvc.perform(post("/films")
+                .andExpect(status().isOk()).andReturn();
+        String jsonUser = userResult.getResponse().getContentAsString();
+        UserDto userDto = objectMapper.readValue(jsonUser, UserDto.class);
+
+        MvcResult filmResult = mockMvc.perform(post("/films")
                         .content(objectMapper.writeValueAsString(testFilm))
                         .contentType(MediaType.APPLICATION_JSON)
                 )
-                .andExpect(status().isOk());
+                .andExpect(status().isOk()).andReturn();
+        String jsonFilm = filmResult.getResponse().getContentAsString();
+        FilmDto filmDto = objectMapper.readValue(jsonFilm, FilmDto.class);
 
-        mockMvc.perform(put("/films/{id}/like/{userId}", testFilm.getId(), testUser.getId()))
+        mockMvc.perform(put("/films/{id}/like/{userId}", filmDto.getId(), userDto.getId()))
                 .andExpect(status().isOk());
     }
 
@@ -219,66 +247,86 @@ class FilmControllerTest {
                 )
                 .andExpect(status().is2xxSuccessful());
 
-        mockMvc.perform(put("/films/{id}/like/{userId}", testFilm.getId(), testUser.getId() + 10))
+        mockMvc.perform(put("/films/{id}/like/{userId}",
+                        testFilm.getId(), testUser.getId() + 9999))
                 .andExpect(status().is4xxClientError());
-        mockMvc.perform(put("/films/{id}/like/{userId}", testFilm.getId() + 10, testUser.getId()))
+        mockMvc.perform(put("/films/{id}/like/{userId}",
+                        testFilm.getId() + 9999, testUser.getId()))
                 .andExpect(status().is4xxClientError());
     }
 
     @Test
     void deleteLike() throws Exception {
-        mockMvc.perform(post("/users")
+        MvcResult userResult = mockMvc.perform(post("/users")
                         .content(objectMapper.writeValueAsString(testUser))
                         .contentType(MediaType.APPLICATION_JSON)
                 )
-                .andExpect(status().isOk());
-        mockMvc.perform(post("/films")
+                .andExpect(status().isOk()).andReturn();
+        String jsonUser = userResult.getResponse().getContentAsString();
+        UserDto userDto = objectMapper.readValue(jsonUser, UserDto.class);
+
+        MvcResult filmResult = mockMvc.perform(post("/films")
                         .content(objectMapper.writeValueAsString(testFilm))
                         .contentType(MediaType.APPLICATION_JSON)
                 )
-                .andExpect(status().isOk());
-        mockMvc.perform(put("/films/{id}/like/{userId}", testFilm.getId(), testUser.getId()))
+                .andExpect(status().isOk()).andReturn();
+        String jsonFilm = filmResult.getResponse().getContentAsString();
+        FilmDto filmDto = objectMapper.readValue(jsonFilm, FilmDto.class);
+        mockMvc.perform(put("/films/{id}/like/{userId}", filmDto.getId(), userDto.getId()))
                 .andExpect(status().isOk());
 
-        mockMvc.perform(delete("/films/{id}/like/{userId}", testFilm.getId(), testUser.getId()))
+        mockMvc.perform(delete("/films/{id}/like/{userId}", filmDto.getId(), userDto.getId()))
                 .andExpect(status().isOk());
     }
 
     @Test
     void deleteLike_shouldGenerateExceptionWhenFilmOrUserNotFound() throws Exception {
-        mockMvc.perform(post("/users")
+        MvcResult userResult = mockMvc.perform(post("/users")
                         .content(objectMapper.writeValueAsString(testUser))
                         .contentType(MediaType.APPLICATION_JSON)
                 )
-                .andExpect(status().isOk());
-        mockMvc.perform(post("/films")
+                .andExpect(status().isOk()).andReturn();
+        String jsonUser = userResult.getResponse().getContentAsString();
+        UserDto userDto = objectMapper.readValue(jsonUser, UserDto.class);
+
+        MvcResult filmResult = mockMvc.perform(post("/films")
                         .content(objectMapper.writeValueAsString(testFilm))
                         .contentType(MediaType.APPLICATION_JSON)
                 )
-                .andExpect(status().isOk());
-        mockMvc.perform(put("/films/{id}/like/{userId}", testFilm.getId(), testUser.getId()))
+                .andExpect(status().isOk()).andReturn();
+        String jsonFilm = filmResult.getResponse().getContentAsString();
+        FilmDto filmDto = objectMapper.readValue(jsonFilm, FilmDto.class);
+        mockMvc.perform(put("/films/{id}/like/{userId}", filmDto.getId(), userDto.getId()))
                 .andExpect(status().isOk());
 
-        mockMvc.perform(delete("/films/{id}/like/{userId}", testFilm.getId(), testUser.getId() + 10))
+        mockMvc.perform(delete("/films/{id}/like/{userId}",
+                        filmDto.getId(), userDto.getId() + 9999))
                 .andExpect(status().is4xxClientError());
-        mockMvc.perform(delete("/films/{id}/like/{userId}", testFilm.getId() + 10, testUser.getId()))
+        mockMvc.perform(delete("/films/{id}/like/{userId}",
+                        filmDto.getId() + 9999, userDto.getId()))
                 .andExpect(status().is4xxClientError());
     }
 
     @Test
     void popularFilms_shouldReturn10Items() throws Exception {
         for (int i = 1; i < 100; i++) {
-            mockMvc.perform(post("/users")
-                            .content(objectMapper.writeValueAsString(testUser))
+            MvcResult userResult = mockMvc.perform(post("/users")
+                            .content(objectMapper.writeValueAsString(getNewUserDto()))
                             .contentType(MediaType.APPLICATION_JSON)
                     )
-                    .andExpect(status().isOk());
-            mockMvc.perform(post("/films")
+                    .andExpect(status().isOk()).andReturn();
+            String jsonUser = userResult.getResponse().getContentAsString();
+            UserDto userDto = objectMapper.readValue(jsonUser, UserDto.class);
+
+            MvcResult filmResult = mockMvc.perform(post("/films")
                             .content(objectMapper.writeValueAsString(testFilm))
                             .contentType(MediaType.APPLICATION_JSON)
                     )
-                    .andExpect(status().isOk());
-            mockMvc.perform(put("/films/{id}/like/{userId}", i, i))
+                    .andExpect(status().isOk()).andReturn();
+            String jsonFilm = filmResult.getResponse().getContentAsString();
+            FilmDto filmDto = objectMapper.readValue(jsonFilm, FilmDto.class);
+
+            mockMvc.perform(put("/films/{id}/like/{userId}", filmDto.getId(), userDto.getId()))
                     .andExpect(status().isOk());
         }
 
@@ -290,17 +338,23 @@ class FilmControllerTest {
     @Test
     void popularFilms_shouldReturn15Items() throws Exception {
         for (int i = 1; i < 100; i++) {
-            mockMvc.perform(post("/users")
-                            .content(objectMapper.writeValueAsString(testUser))
+            MvcResult userResult = mockMvc.perform(post("/users")
+                            .content(objectMapper.writeValueAsString(getNewUserDto()))
                             .contentType(MediaType.APPLICATION_JSON)
                     )
-                    .andExpect(status().isOk());
-            mockMvc.perform(post("/films")
+                    .andExpect(status().isOk()).andReturn();
+            String jsonUser = userResult.getResponse().getContentAsString();
+            UserDto userDto = objectMapper.readValue(jsonUser, UserDto.class);
+
+            MvcResult filmResult = mockMvc.perform(post("/films")
                             .content(objectMapper.writeValueAsString(testFilm))
                             .contentType(MediaType.APPLICATION_JSON)
                     )
-                    .andExpect(status().isOk());
-            mockMvc.perform(put("/films/{id}/like/{userId}", i, i))
+                    .andExpect(status().isOk()).andReturn();
+            String jsonFilm = filmResult.getResponse().getContentAsString();
+            FilmDto filmDto = objectMapper.readValue(jsonFilm, FilmDto.class);
+
+            mockMvc.perform(put("/films/{id}/like/{userId}", filmDto.getId(), userDto.getId()))
                     .andExpect(status().isOk());
         }
 
@@ -311,27 +365,35 @@ class FilmControllerTest {
 
     @Test
     void popularFilms_shouldReturnOnlyPopularFilms() throws Exception {
+        List<Integer> popularFilmsIds = new ArrayList<>();
         for (int i = 1; i < 100; i++) {
-            mockMvc.perform(post("/users")
-                            .content(objectMapper.writeValueAsString(testUser))
+            MvcResult userResult = mockMvc.perform(post("/users")
+                            .content(objectMapper.writeValueAsString(getNewUserDto()))
                             .contentType(MediaType.APPLICATION_JSON)
                     )
-                    .andExpect(status().isOk());
-            mockMvc.perform(post("/films")
+                    .andExpect(status().isOk()).andReturn();
+            String jsonUser = userResult.getResponse().getContentAsString();
+            UserDto userDto = objectMapper.readValue(jsonUser, UserDto.class);
+
+            MvcResult filmResult = mockMvc.perform(post("/films")
                             .content(objectMapper.writeValueAsString(testFilm))
                             .contentType(MediaType.APPLICATION_JSON)
                     )
-                    .andExpect(status().isOk());
-            if (i <= 11) {
-                mockMvc.perform(put("/films/{id}/like/{userId}", i, i))
+                    .andExpect(status().isOk()).andReturn();
+            String jsonFilm = filmResult.getResponse().getContentAsString();
+            FilmDto filmDto = objectMapper.readValue(jsonFilm, FilmDto.class);
+
+            if (i < 11) {
+                mockMvc.perform(put("/films/{id}/like/{userId}", filmDto.getId(), userDto.getId()))
                         .andExpect(status().isOk());
+                popularFilmsIds.add(filmDto.getId().intValue());
             }
         }
 
         mockMvc.perform(get("/films/popular"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.length()").value(10))
-                .andExpect(jsonPath("$.[*].id").value(
-                        is(Arrays.asList(1, 2, 3, 4, 5, 6, 7, 8, 9, 10))));
+                .andExpect(jsonPath("$.[*].id", containsInAnyOrder(popularFilmsIds.toArray())));
+
     }
 }

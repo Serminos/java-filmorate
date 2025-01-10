@@ -5,20 +5,11 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDate;
-
-/**
- * Film.
- */
 @Data
-@Builder
-@NoArgsConstructor
 @AllArgsConstructor
-public class Film {
-    Long id;
+@NoArgsConstructor
+@Builder
+public class Genre {
+    Long genreId;
     String name;
-    String description;
-    LocalDate releaseDate;
-    Long duration;
-    Long ratingMpaId;
 }

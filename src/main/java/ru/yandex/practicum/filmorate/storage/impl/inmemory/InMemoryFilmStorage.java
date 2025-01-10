@@ -1,26 +1,26 @@
-package ru.yandex.practicum.filmorate.storage.impl;
+package ru.yandex.practicum.filmorate.storage.impl.inmemory;
 
-import jakarta.validation.Valid;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
-import org.springframework.web.bind.annotation.RequestBody;
-import ru.yandex.practicum.filmorate.Exception.NotFoundException;
+import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.storage.FilmStorage;
 
-import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 
 @Component
+@Qualifier("InMemoryFilmStorage")
 public class InMemoryFilmStorage implements FilmStorage {
     private final HashMap<Long, Film> films = new HashMap<>();
 
-    public Film create(@Valid @RequestBody Film film) {
+    public Film create(Film film) {
         film.setId(getNextId());
         films.put(film.getId(), film);
         return film;
     }
 
-    public Film update(@Valid @RequestBody Film film) {
+    public Film update(Film film) {
         if (films.containsKey(film.getId())) {
             films.put(film.getId(), film);
             return film;
@@ -39,8 +39,8 @@ public class InMemoryFilmStorage implements FilmStorage {
         return ++currentMaxId;
     }
 
-    public Collection<Film> all() {
-        return films.values();
+    public List<Film> all() {
+        return films.values().stream().toList();
     }
 
     public Film findById(long id) {
@@ -54,9 +54,10 @@ public class InMemoryFilmStorage implements FilmStorage {
         if (!films.containsKey(filmId)) {
             throw new NotFoundException("Фильм не найден");
         }
-        if (!films.get(filmId).getLikes().remove(userId)) {
+        // TODO REFACTOR
+        /*if (!films.get(filmId).getUserLikeIds().remove(userId)) {
             throw new NotFoundException("Для указанного фильма - лайк не найден");
-        }
+        }*/
         return true;
     }
 

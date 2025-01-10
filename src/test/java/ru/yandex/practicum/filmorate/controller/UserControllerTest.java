@@ -4,20 +4,24 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MvcResult;
 import ru.yandex.practicum.filmorate.FilmorateApplication;
-import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.dto.UserDto;
 import ru.yandex.practicum.filmorate.service.UserService;
 
 import java.time.LocalDate;
+import java.util.UUID;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+@AutoConfigureTestDatabase
 @SpringBootTest(
         webEnvironment = SpringBootTest.WebEnvironment.MOCK,
         classes = FilmorateApplication.class)
@@ -32,18 +36,30 @@ class UserControllerTest {
     @Autowired
     private ObjectMapper objectMapper;
 
-    User testUser;
+    UserDto testUser;
 
     @BeforeEach
     void beforeEachTest() {
-        testUser = User.builder()
-                .id(1)
+        testUser = UserDto.builder()
+                .id(1L)
                 .email("norm@email.ru")
                 .name("name")
                 .login("login")
                 .birthday(LocalDate.now().minusYears(20))
                 .build();
         userService.clear();
+    }
+
+    private UserDto getNewUserDto() {
+        String randomValue = UUID.randomUUID().toString();
+        testUser = UserDto.builder()
+                .id(1L)
+                .email(randomValue + "@email.ru")
+                .name("name")
+                .login(randomValue + "login")
+                .birthday(LocalDate.now().minusYears(20))
+                .build();
+        return testUser;
     }
 
     @Test
@@ -62,7 +78,7 @@ class UserControllerTest {
 
     @Test
     void update() throws Exception {
-        mockMvc.perform(post("/users")
+        MvcResult userResult1 = mockMvc.perform(post("/users")
                         .content(objectMapper.writeValueAsString(testUser))
                         .contentType(MediaType.APPLICATION_JSON)
                 )
@@ -71,12 +87,14 @@ class UserControllerTest {
                 .andExpect(jsonPath("$.email").value("norm@email.ru"))
                 .andExpect(jsonPath("$.name").value("name"))
                 .andExpect(jsonPath("$.login").value("login"))
-                .andExpect(jsonPath("$.birthday").value(LocalDate.now().minusYears(20).toString()));
-
-        testUser.setLogin("NewLogin");
+                .andExpect(jsonPath("$.birthday").value(LocalDate.now().minusYears(20).toString()))
+                .andReturn();
+        String jsonUser = userResult1.getResponse().getContentAsString();
+        UserDto userDto = objectMapper.readValue(jsonUser, UserDto.class);
+        userDto.setLogin("NewLogin");
 
         mockMvc.perform(put("/users")
-                        .content(objectMapper.writeValueAsString(testUser))
+                        .content(objectMapper.writeValueAsString(userDto))
                         .contentType(MediaType.APPLICATION_JSON)
                 )
                 .andExpect(status().is2xxSuccessful())
@@ -204,120 +222,100 @@ class UserControllerTest {
 
     @Test
     void addUserFriend() throws Exception {
-        mockMvc.perform(post("/users")
+        MvcResult userResult1 = mockMvc.perform(post("/users")
                 .content(objectMapper.writeValueAsString(testUser))
                 .contentType(MediaType.APPLICATION_JSON)
-        );
-        User friend = User.builder()
-                .id(testUser.getId() + 1)
-                .email("user_friend@email.ru")
-                .name("user friend")
-                .login("user_friend")
-                .birthday(LocalDate.now().minusYears(50))
-                .build();
-        mockMvc.perform(post("/users")
-                .content(objectMapper.writeValueAsString(testUser))
-                .contentType(MediaType.APPLICATION_JSON)
-        );
-        mockMvc.perform(post("/users")
+        ).andReturn();
+        String jsonUser = userResult1.getResponse().getContentAsString();
+        UserDto userDto1 = objectMapper.readValue(jsonUser, UserDto.class);
+        UserDto friend = getNewUserDto();
+        MvcResult userResult2 = mockMvc.perform(post("/users")
                 .content(objectMapper.writeValueAsString(friend))
                 .contentType(MediaType.APPLICATION_JSON)
-        );
+        ).andReturn();
+        String jsonUser2 = userResult2.getResponse().getContentAsString();
+        UserDto userDto2 = objectMapper.readValue(jsonUser2, UserDto.class);
 
-        mockMvc.perform(put("/users/{id}/friends/{friendId}", testUser.getId(), friend.getId())
+        mockMvc.perform(put("/users/{id}/friends/{friendId}", userDto1.getId(), userDto2.getId())
                 )
                 .andExpect(status().is2xxSuccessful());
     }
 
     @Test
     void addUserFriend_GenerateExceptionWhenUserOrFriendNotExists() throws Exception {
-        mockMvc.perform(post("/users")
+        MvcResult userResult1 = mockMvc.perform(post("/users")
                 .content(objectMapper.writeValueAsString(testUser))
                 .contentType(MediaType.APPLICATION_JSON)
-        );
-        User friend = User.builder()
-                .id(testUser.getId() + 1)
-                .email("user_friend@email.ru")
-                .name("user friend")
-                .login("user_friend")
-                .birthday(LocalDate.now().minusYears(50))
-                .build();
-        mockMvc.perform(post("/users")
-                .content(objectMapper.writeValueAsString(testUser))
-                .contentType(MediaType.APPLICATION_JSON)
-        );
-        mockMvc.perform(post("/users")
+        ).andReturn();
+        String jsonUser = userResult1.getResponse().getContentAsString();
+        UserDto userDto1 = objectMapper.readValue(jsonUser, UserDto.class);
+        UserDto friend = getNewUserDto();
+        MvcResult userResult2 = mockMvc.perform(post("/users")
                 .content(objectMapper.writeValueAsString(friend))
                 .contentType(MediaType.APPLICATION_JSON)
-        );
+        ).andReturn();
+        String jsonUser2 = userResult2.getResponse().getContentAsString();
+        UserDto userDto2 = objectMapper.readValue(jsonUser2, UserDto.class);
 
-        mockMvc.perform(put("/users/{id}/friends/{friendId}", testUser.getId() + 10, friend.getId())
+        mockMvc.perform(put("/users/{id}/friends/{friendId}", userDto1.getId() + 9999,
+                        userDto2.getId())
                 )
                 .andExpect(status().is4xxClientError());
-        mockMvc.perform(put("/users/{id}/friends/{friendId}", testUser.getId(), friend.getId() + 10)
+        mockMvc.perform(put("/users/{id}/friends/{friendId}", userDto1.getId(),
+                        userDto2.getId() + 9999)
                 )
                 .andExpect(status().is4xxClientError());
     }
 
     @Test
     void deleteUserFriend() throws Exception {
-        mockMvc.perform(post("/users")
+        MvcResult userResult1 = mockMvc.perform(post("/users")
                 .content(objectMapper.writeValueAsString(testUser))
                 .contentType(MediaType.APPLICATION_JSON)
-        );
-        User friend = User.builder()
-                .id(testUser.getId() + 1)
-                .email("user_friend@email.ru")
-                .name("user friend")
-                .login("user_friend")
-                .birthday(LocalDate.now().minusYears(50))
-                .build();
-        mockMvc.perform(post("/users")
-                .content(objectMapper.writeValueAsString(testUser))
-                .contentType(MediaType.APPLICATION_JSON)
-        );
-        mockMvc.perform(post("/users")
+        ).andReturn();
+        String jsonUser = userResult1.getResponse().getContentAsString();
+        UserDto userDto1 = objectMapper.readValue(jsonUser, UserDto.class);
+        UserDto friend = getNewUserDto();
+        MvcResult userResult2 = mockMvc.perform(post("/users")
                 .content(objectMapper.writeValueAsString(friend))
                 .contentType(MediaType.APPLICATION_JSON)
-        );
+        ).andReturn();
+        String jsonUser2 = userResult2.getResponse().getContentAsString();
+        UserDto userDto2 = objectMapper.readValue(jsonUser2, UserDto.class);
 
-        mockMvc.perform(put("/users/{id}/friends/{friendId}", testUser.getId(), friend.getId())
+        mockMvc.perform(put("/users/{id}/friends/{friendId}", userDto1.getId(), userDto2.getId())
                 )
                 .andExpect(status().isOk());
-        mockMvc.perform(delete("/users/{id}/friends/{friendId}", testUser.getId(), friend.getId())
+        mockMvc.perform(delete("/users/{id}/friends/{friendId}", userDto1.getId(), userDto2.getId())
                 )
                 .andExpect(status().isOk());
     }
 
     @Test
     void deleteUserFriend_GenerateExceptionWhenUserOrFriendNotExists() throws Exception {
-        mockMvc.perform(post("/users")
+        MvcResult userResult1 = mockMvc.perform(post("/users")
                 .content(objectMapper.writeValueAsString(testUser))
                 .contentType(MediaType.APPLICATION_JSON)
-        );
-        User friend = User.builder()
-                .id(testUser.getId() + 1)
-                .email("user_friend@email.ru")
-                .name("user friend")
-                .login("user_friend")
-                .birthday(LocalDate.now().minusYears(50))
-                .build();
-        mockMvc.perform(post("/users")
-                .content(objectMapper.writeValueAsString(testUser))
-                .contentType(MediaType.APPLICATION_JSON)
-        );
-        mockMvc.perform(post("/users")
+        ).andReturn();
+        String jsonUser = userResult1.getResponse().getContentAsString();
+        UserDto userDto1 = objectMapper.readValue(jsonUser, UserDto.class);
+        UserDto friend = getNewUserDto();
+        MvcResult userResult2 = mockMvc.perform(post("/users")
                 .content(objectMapper.writeValueAsString(friend))
                 .contentType(MediaType.APPLICATION_JSON)
-        );
+        ).andReturn();
+        String jsonUser2 = userResult2.getResponse().getContentAsString();
+        UserDto userDto2 = objectMapper.readValue(jsonUser2, UserDto.class);
 
-        mockMvc.perform(put("/users/{id}/friends/{friendId}", testUser.getId(), friend.getId())
+        mockMvc.perform(put("/users/{id}/friends/{friendId}", userDto1.getId(), userDto2.getId())
                 )
                 .andExpect(status().isOk());
-        mockMvc.perform(delete("/users/{id}/friends/{friendId}", testUser.getId() + 10, friend.getId())
+        mockMvc.perform(delete("/users/{id}/friends/{friendId}",
+                        userDto1.getId() + 9999, userDto2.getId())
                 )
                 .andExpect(status().is4xxClientError());
-        mockMvc.perform(delete("/users/{id}/friends/{friendId}", testUser.getId(), friend.getId() + 10)
+        mockMvc.perform(delete("/users/{id}/friends/{friendId}",
+                        userDto1.getId(), userDto2.getId() + 9999)
                 )
                 .andExpect(status().is4xxClientError());
     }
@@ -325,26 +323,25 @@ class UserControllerTest {
 
     @Test
     void getUserFriends() throws Exception {
-        mockMvc.perform(post("/users")
+        MvcResult userResult1 = mockMvc.perform(post("/users")
                 .content(objectMapper.writeValueAsString(testUser))
                 .contentType(MediaType.APPLICATION_JSON)
-        );
-        User friend = User.builder()
-                .id(testUser.getId() + 1)
-                .email("user_friend@email.ru")
-                .name("user friend")
-                .login("user_friend")
-                .birthday(LocalDate.now().minusYears(50))
-                .build();
-        mockMvc.perform(post("/users")
-                .content(objectMapper.writeValueAsString(friend))
+        ).andReturn();
+        String jsonUser = userResult1.getResponse().getContentAsString();
+        UserDto userDto1 = objectMapper.readValue(jsonUser, UserDto.class);
+        UserDto friend1 = getNewUserDto();
+        MvcResult userResult2 = mockMvc.perform(post("/users")
+                .content(objectMapper.writeValueAsString(friend1))
                 .contentType(MediaType.APPLICATION_JSON)
-        );
-        mockMvc.perform(put("/users/{id}/friends/{friendId}", testUser.getId(), friend.getId())
+        ).andReturn();
+        String jsonUser2 = userResult2.getResponse().getContentAsString();
+        UserDto friend = objectMapper.readValue(jsonUser2, UserDto.class);
+
+        mockMvc.perform(put("/users/{id}/friends/{friendId}", userDto1.getId(), friend.getId())
                 )
                 .andExpect(status().is2xxSuccessful());
 
-        mockMvc.perform(get("/users/{id}/friends", testUser.getId())
+        mockMvc.perform(get("/users/{id}/friends", userDto1.getId())
                 )
                 .andExpect(status().is2xxSuccessful())
                 .andExpect(jsonPath("$.[0].id").value(friend.getId()));
@@ -352,41 +349,36 @@ class UserControllerTest {
 
     @Test
     void commonFriends() throws Exception {
-        mockMvc.perform(post("/users")
+        MvcResult userResult1 = mockMvc.perform(post("/users")
                 .content(objectMapper.writeValueAsString(testUser))
                 .contentType(MediaType.APPLICATION_JSON)
-        );
-        User friend = User.builder()
-                .id(testUser.getId() + 1)
-                .email("user_friend@email.ru")
-                .name("user friend")
-                .login("user_friend")
-                .birthday(LocalDate.now().minusYears(50))
-                .build();
-        User commonFriend = User.builder()
-                .id(friend.getId() + 1)
-                .email("user_friend@email.ru")
-                .name("user friend")
-                .login("user_friend")
-                .birthday(LocalDate.now().minusYears(50))
-                .build();
-        mockMvc.perform(post("/users")
-                .content(objectMapper.writeValueAsString(friend))
+        ).andReturn();
+        String jsonUser = userResult1.getResponse().getContentAsString();
+        UserDto userDto1 = objectMapper.readValue(jsonUser, UserDto.class);
+        UserDto friend1 = getNewUserDto();
+        MvcResult userResult2 = mockMvc.perform(post("/users")
+                .content(objectMapper.writeValueAsString(friend1))
                 .contentType(MediaType.APPLICATION_JSON)
-        );
-        mockMvc.perform(post("/users")
-                .content(objectMapper.writeValueAsString(commonFriend))
+        ).andReturn();
+        String jsonUser2 = userResult2.getResponse().getContentAsString();
+        UserDto userDto2 = objectMapper.readValue(jsonUser2, UserDto.class);
+        UserDto friend2 = getNewUserDto();
+        MvcResult userResult3 = mockMvc.perform(post("/users")
+                .content(objectMapper.writeValueAsString(friend2))
                 .contentType(MediaType.APPLICATION_JSON)
-        );
-        mockMvc.perform(put("/users/{id}/friends/{friendId}", testUser.getId(), commonFriend.getId())
+        ).andReturn();
+        String jsonUser3 = userResult3.getResponse().getContentAsString();
+        UserDto commonFriend = objectMapper.readValue(jsonUser3, UserDto.class);
+
+        mockMvc.perform(put("/users/{id}/friends/{friendId}", userDto1.getId(), commonFriend.getId())
                 )
                 .andExpect(status().is2xxSuccessful());
-        mockMvc.perform(put("/users/{id}/friends/{friendId}", friend.getId(), commonFriend.getId())
+        mockMvc.perform(put("/users/{id}/friends/{friendId}", userDto2.getId(), commonFriend.getId())
                 )
                 .andExpect(status().is2xxSuccessful());
 
 
-        mockMvc.perform(get("/users/{id}/friends/common/{friendId}", testUser.getId(), friend.getId())
+        mockMvc.perform(get("/users/{id}/friends/common/{friendId}", userDto1.getId(), userDto2.getId())
                 )
                 .andExpect(status().is2xxSuccessful())
                 .andExpect(jsonPath("$.length()").value(1))

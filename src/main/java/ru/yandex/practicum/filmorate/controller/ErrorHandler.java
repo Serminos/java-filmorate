@@ -8,14 +8,16 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
-import ru.yandex.practicum.filmorate.Exception.ErrorResponse;
-import ru.yandex.practicum.filmorate.Exception.NotFoundException;
+import ru.yandex.practicum.filmorate.exception.BadRequestException;
+import ru.yandex.practicum.filmorate.exception.ErrorResponse;
+import ru.yandex.practicum.filmorate.exception.NotFoundException;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 
-@RestControllerAdvice(assignableTypes = {UserController.class, FilmController.class})
+@RestControllerAdvice(assignableTypes = {UserController.class, FilmController.class,
+        RatingMpaController.class, GenreController.class})
 public class ErrorHandler {
     private static final Logger log = LoggerFactory.getLogger(FilmController.class);
 
@@ -36,6 +38,13 @@ public class ErrorHandler {
     @ResponseStatus(HttpStatus.NOT_FOUND)
     @ExceptionHandler(NotFoundException.class)
     public ErrorResponse handleValidationExceptions(NotFoundException e) {
+        log.info("Ошибка сервера: {}", e.getMessage());
+        return new ErrorResponse(e.getMessage());
+    }
+
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    @ExceptionHandler(BadRequestException.class)
+    public ErrorResponse handleValidationExceptions(BadRequestException e) {
         log.info("Ошибка сервера: {}", e.getMessage());
         return new ErrorResponse(e.getMessage());
     }

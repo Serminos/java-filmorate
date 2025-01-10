@@ -5,10 +5,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
-import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.dto.FilmDto;
 import ru.yandex.practicum.filmorate.service.FilmService;
 
-import java.util.Collection;
 import java.util.List;
 
 @RestController
@@ -23,36 +22,44 @@ public class FilmController {
     }
 
     @PostMapping
-    public Film create(@Valid @RequestBody Film film) {
-        log.debug("Создание фильма [{}]", film);
-        film = filmService.create(film);
-        return film;
+    public FilmDto create(@Valid @RequestBody FilmDto filmDto) {
+        log.debug("Создание фильма [{}]", filmDto);
+        filmDto = filmService.create(filmDto);
+        return filmDto;
     }
 
     @PutMapping
-    public Film update(@Valid @RequestBody Film film) {
-        log.debug("Обновление фильма [{}]", film);
-        film = filmService.update(film);
-        return film;
+    public FilmDto update(@Valid @RequestBody FilmDto filmDto) {
+        log.debug("Обновление фильма [{}]", filmDto);
+        filmDto = filmService.update(filmDto);
+        return filmDto;
     }
 
     @GetMapping
-    public Collection<Film> all() {
+    public List<FilmDto> all() {
         return filmService.all();
+    }
+
+    @GetMapping("/{id}")
+    public FilmDto getFilmById(@PathVariable long id) {
+        return filmService.getFilmById(id);
     }
 
     @PutMapping("/{id}/like/{userId}")
     public void addLike(@PathVariable long id, @PathVariable long userId) {
+        log.debug("Добавление лайка для фильма [{}] пользователем [{}]", id, userId);
         filmService.addLike(id, userId);
     }
 
     @DeleteMapping("/{id}/like/{userId}")
     public void deleteLike(@PathVariable long id, @PathVariable long userId) {
+        log.debug("Удаление лайка для фильма [{}] пользователем [{}]", id, userId);
         filmService.deleteLike(id, userId);
     }
 
     @GetMapping("/popular")
-    public List<Film> popularFilms(@RequestParam(value = "count", defaultValue = "10") long count) {
+    public List<FilmDto> popularFilms(@RequestParam(value = "count", defaultValue = "10") long count) {
+        log.debug("Популярные фильмы - Топ - [{}]", count);
         return filmService.findPopularFilms(count);
     }
 }
