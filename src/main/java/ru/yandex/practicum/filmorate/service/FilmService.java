@@ -175,22 +175,26 @@ public class FilmService {
     }
 
     public List<FilmDto> getCommonFilms(long userId, long friendId) {
-        List<FilmUserLike> userLikes = filmUserLikeStorage.findFilmLikeByUserId(userId);
-        List<FilmUserLike> friendLikes = filmUserLikeStorage.findFilmLikeByUserId(friendId);
+        checkUserExists(userId);
+        checkUserExists(friendId);
 
-        Set<Long> userLikedFilmIds = userLikes.stream()
+        List<Long> userLikedFilmIds = filmUserLikeStorage.findFilmLikeByUserId(userId)
+                .stream()
                 .map(FilmUserLike::getFilmId)
-                .collect(Collectors.toSet());
+                .collect(Collectors.toList());
 
-        Set<Long> friendLikedFilmIds = friendLikes.stream()
+        List<Long> friendLikedFilmIds = filmUserLikeStorage.findFilmLikeByUserId(friendId)
+                .stream()
                 .map(FilmUserLike::getFilmId)
-                .collect(Collectors.toSet());
+                .collect(Collectors.toList());
 
         userLikedFilmIds.retainAll(friendLikedFilmIds);
 
-        List<Film> films = userLikedFilmIds.stream()
-                .map(filmStorage::findById)
-                .collect(Collectors.toList());
+        if (userLikedFilmIds.isEmpty()) {
+            return List.of();
+        }
+
+        List<Film> films = filmStorage.findByIds(userLikedFilmIds);
 
         return mapFilmsToFilmDtosAndAddDopInfo(films);
     }
