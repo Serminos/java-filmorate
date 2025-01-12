@@ -66,4 +66,10 @@ class FilmUserLikeDbStorage implements FilmUserLikeStorage {
     public void removeAllLikesByUserId(long userId) {
         jdbcTemplate.update("DELETE FROM film_user_like WHERE user_id = ?", userId);
     }
+
+    @Override
+    public void removeAllLikesByFilmId(long filmId) {
+        jdbcTemplate.update("DELETE FROM film_user_like WHERE film_id = ?", filmId);
+    }
+
 }

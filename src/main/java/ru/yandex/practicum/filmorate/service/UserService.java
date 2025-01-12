@@ -101,9 +101,6 @@ public class UserService {
 
     public void deleteUser(long userId) {
         checkUserExists(userId);
-        if (userStorage.findById(userId) == null) {
-            throw new NotFoundException("Пользователь с ID [" + userId + "] не найден");
-        }
         friendshipStorage.removeAllByUserId(userId);
         filmUserLikeStorage.removeAllLikesByUserId(userId);
         userStorage.deleteUser(userId);

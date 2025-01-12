@@ -174,8 +174,9 @@ public class FilmService {
         return filmDtos;
     }
 
-    public void deleteFilm(long filmId) {
-        checkFilmExists(filmId);
+    public void deleteFilm(long filmId){
+        filmUserLikeStorage.removeAllLikesByFilmId(filmId);
+        filmGenreStorage.removeGenreByFilmId(filmId);
         filmStorage.deleteFilm(filmId);
     }
 
