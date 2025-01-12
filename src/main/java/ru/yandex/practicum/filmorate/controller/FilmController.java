@@ -64,7 +64,7 @@ public class FilmController {
     }
 
     @DeleteMapping("/{id}")
-    public void deleteFilm(@PathVariable long id){
+    public void deleteFilm(@PathVariable long id) {
         log.debug("РЈРґР°Р»РµРЅРёРµ С„РёР»СЊРјР° СЃ РёРґРµРЅС‚РёС„РёРєР°С‚РѕСЂРѕРј [{}]", id);
         filmService.deleteFilm(id);
     }
