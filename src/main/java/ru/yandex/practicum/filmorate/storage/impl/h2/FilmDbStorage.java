@@ -12,6 +12,7 @@ import ru.yandex.practicum.filmorate.storage.impl.h2.mappers.FilmRowMapper;
 
 import java.sql.Date;
 import java.sql.PreparedStatement;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
@@ -25,8 +26,8 @@ class FilmDbStorage implements FilmStorage {
     @Override
     public Film create(Film film) {
         String sql = " INSERT INTO film " +
-                     " (name, description, release_date, duration, rating_mpa_id) " +
-                     " VALUES (?, ?, ?, ?, ?) ";
+                " (name, description, release_date, duration, rating_mpa_id) " +
+                " VALUES (?, ?, ?, ?, ?) ";
         KeyHolder keyHolder = new GeneratedKeyHolder();
         jdbcTemplate.update(
                 connection -> {
@@ -46,8 +47,8 @@ class FilmDbStorage implements FilmStorage {
     public Film update(Film film) {
         Long filmId = film.getId();
         String sql = " UPDATE film " +
-                     " SET name = ?, description = ?, release_date = ?, duration = ?, rating_mpa_id = ? " +
-                     " WHERE film_id = ? ";
+                " SET name = ?, description = ?, release_date = ?, duration = ?, rating_mpa_id = ? " +
+                " WHERE film_id = ? ";
         jdbcTemplate.update(sql, film.getName(), film.getDescription(), film.getReleaseDate(), film.getDuration(),
                 film.getRatingMpaId(), filmId);
         return film;
@@ -78,6 +79,14 @@ class FilmDbStorage implements FilmStorage {
     @Override
     public void deleteFilm(long filmId) {
         jdbcTemplate.update("DELETE FROM film WHERE film_id = ?", filmId);
+    public List<Film> findByIds(List<Long> ids) {
+        if (ids.isEmpty()) {
+            return List.of();
+        }
+
+        String sql = "SELECT * FROM film WHERE film_id IN (" + String.join(",", Collections.nCopies(ids.size(), "?")) + ")";
+
+        return jdbcTemplate.query(sql, filmRowMapper, ids.toArray());
     }
 
 }
