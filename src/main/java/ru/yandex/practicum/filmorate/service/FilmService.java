@@ -147,14 +147,21 @@ public class FilmService {
         filmStorage.clear();
     }
 
+//    public List<FilmDto> findPopularFilms(long count) {
+//        List<Long> popularFilmsIds = filmUserLikeStorage.popularFilmIds(count);
+//        List<Film> films = new ArrayList<>();
+//        for (Long filmId : popularFilmsIds) {
+//            films.add(filmStorage.findById(filmId));
+//        }
+//        return mapFilmsToFilmDtosAndAddDopInfo(films);
+//    }
+
     public List<FilmDto> findPopularFilms(long count) {
-        List<Long> popularFilmsIds = filmUserLikeStorage.popularFilmIds(count);
-        List<Film> films = new ArrayList<>();
-        for (Long filmId : popularFilmsIds) {
-            films.add(filmStorage.findById(filmId));
-        }
+        List<Long> popularFilmIds = filmUserLikeStorage.popularFilmIds(count);
+        List<Film> films = filmStorage.findByIds(popularFilmIds);
         return mapFilmsToFilmDtosAndAddDopInfo(films);
     }
+
 
     private List<FilmDto> mapFilmsToFilmDtosAndAddDopInfo(List<Film> films) {
         List<FilmDto> filmDtos = new ArrayList<>();

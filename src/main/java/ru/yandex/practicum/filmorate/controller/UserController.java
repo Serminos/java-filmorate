@@ -4,6 +4,7 @@ import jakarta.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.dto.UserDto;
@@ -65,9 +66,9 @@ public class UserController {
     }
 
     @DeleteMapping("/{id}")
-    public void deleteUser(@PathVariable long id) {
+    public ResponseEntity<Void> deleteUser(@PathVariable long id) {
         log.debug("Удаление пользователя с идентификатором [{}]", id);
         userService.deleteUser(id);
+        return ResponseEntity.noContent().build(); // Возвращаем 204 No Content
     }
-
 }
