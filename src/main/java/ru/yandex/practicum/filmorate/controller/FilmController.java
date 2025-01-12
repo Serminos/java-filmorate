@@ -63,16 +63,16 @@ public class FilmController {
         return filmService.findPopularFilms(count);
     }
 
-    @DeleteMapping("/{id}")
-    public void deleteFilm(@PathVariable long id) {
-        log.debug("РЈРґР°Р»РµРЅРёРµ С„РёР»СЊРјР° СЃ РёРґРµРЅС‚РёС„РёРєР°С‚РѕСЂРѕРј [{}]", id);
-        filmService.deleteFilm(id);
-    }
-
 
     @GetMapping("/common")
     public List<FilmDto> getCommonFilms(@RequestParam long userId, @RequestParam long friendId) {
         log.debug("Получен запрос на общие фильмы для пользователей: userId=[{}], friendId=[{}]", userId, friendId);
         return filmService.getCommonFilms(userId, friendId);
+    }
+
+    @DeleteMapping("/{id}")
+    public void deleteFilm(@PathVariable long id) {
+        log.debug("Удаление фильма с идентификатором [{}]", id);
+        filmService.deleteFilm(id);
     }
 }

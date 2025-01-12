@@ -59,13 +59,15 @@ class UserDbStorage implements UserStorage {
         return jdbcTemplate.query("SELECT * FROM users", userRowMapper);
     }
 
-    @Override
-    public void deleteUser(long userId) {
-        jdbcTemplate.update("DELETE FROM users WHERE user_id = ?", userId);
-    }
 
     @Override
     public void clear() {
         jdbcTemplate.update("DELETE FROM users");
     }
+
+    @Override
+    public void deleteUser(long userId) {
+        jdbcTemplate.update("DELETE FROM users WHERE user_id = ?", userId);
+    }
+
 }
