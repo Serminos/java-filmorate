@@ -18,4 +18,6 @@ public interface FilmStorage {
     void clear();
 
     void deleteFilm(long filmId);
+  
+    List<Film> findByIds(List<Long> ids);
 }

@@ -8,6 +8,8 @@ import ru.yandex.practicum.filmorate.storage.FilmStorage;
 
 import java.util.HashMap;
 import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 @Component
 @Qualifier("InMemoryFilmStorage")
@@ -73,4 +75,14 @@ public class InMemoryFilmStorage implements FilmStorage {
         films.remove(filmId);
     }
 
+    public List<Film> findByIds(List<Long> ids) {
+        if (ids.isEmpty()) {
+            return List.of();
+        }
+
+        return ids.stream()
+                .map(films::get)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
+    }
 }
