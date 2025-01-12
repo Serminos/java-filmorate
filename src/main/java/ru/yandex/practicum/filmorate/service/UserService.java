@@ -122,9 +122,13 @@ public class UserService {
 
         for (Long otherUserId : otherUsers) {
             Set<Long> otherUserLikes = filmUserLikeStorage.findUserLikedFilmIds(otherUserId);
+            log.debug("Лайки пользователя [{}]: {}", otherUserId, otherUserLikes);
+
             int commonLikes = (int) currentUserLikes.stream()
                     .filter(otherUserLikes::contains)
                     .count();
+
+            log.debug("Общие лайки с пользователем [{}]: {}", otherUserId, commonLikes);
 
             if (commonLikes > maxCommonLikes) {
                 maxCommonLikes = commonLikes;
@@ -135,6 +139,7 @@ public class UserService {
         log.debug("Самый похожий пользователь: {}, количество общих лайков: {}", mostSimilarUserId, maxCommonLikes);
 
         if (mostSimilarUserId == null) {
+            log.debug("Не найден похожий пользователь.");
             return List.of();
         }
 
@@ -142,14 +147,13 @@ public class UserService {
         Set<Long> recommendedFilmIds = new HashSet<>(similarUserLikes);
         recommendedFilmIds.removeAll(currentUserLikes);
 
-        log.debug("Рекомендованные фильмы: {}", recommendedFilmIds);
+        log.debug("Рекомендованные фильмы (IDs): {}", recommendedFilmIds);
 
         return recommendedFilmIds.stream()
                 .map(filmStorage::findById)
-                .filter(Objects::nonNull)
+                .filter(Objects::nonNull) // Исключаем null, если фильм не найден
                 .toList();
     }
-
 
 
 }
