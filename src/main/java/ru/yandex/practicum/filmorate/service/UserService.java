@@ -96,7 +96,9 @@ public class UserService {
 
     public void deleteUser(long userId) {
         checkUserExists(userId);
+        friendshipStorage.removeAllByUserId(userId);
         userStorage.deleteUser(userId);
+
     }
 
 }
