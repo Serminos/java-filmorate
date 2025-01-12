@@ -55,7 +55,6 @@ public class InMemoryUserStorage implements UserStorage {
         return results;
     }
 
-    // вспомогательный метод для генерации идентификатора нового пользователя
     private long getNextId() {
         long currentMaxId = users.keySet()
                 .stream()

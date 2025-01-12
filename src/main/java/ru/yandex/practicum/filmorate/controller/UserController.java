@@ -6,8 +6,11 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import ru.yandex.practicum.filmorate.dto.FilmDto;
 import ru.yandex.practicum.filmorate.dto.UserDto;
+import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.service.UserService;
+import ru.yandex.practicum.filmorate.service.mapper.FilmMapper;
 
 import java.util.List;
 
@@ -62,4 +65,15 @@ public class UserController {
     public List<UserDto> commonFriends(@PathVariable long id, @PathVariable long friendId) {
         return userService.commonFriends(id, friendId);
     }
+
+    @GetMapping("/{id}/recommendations")
+    public List<FilmDto> getRecommendations(@PathVariable long id) {
+        log.debug("Получение рекомендаций для пользователя с идентификатором [{}]", id);
+        List<Film> recommendedFilms = userService.getRecommendations(id);
+
+        return recommendedFilms.stream()
+                .map(FilmMapper::mapToFilmDto)
+                .toList();
+    }
+
 }
