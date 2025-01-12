@@ -69,7 +69,7 @@ public class InMemoryFilmStorage implements FilmStorage {
 
     @Override
     public void deleteFilm(long filmId) {
-        if (!films.containsKey(filmId)){
+        if (!films.containsKey(filmId)) {
             throw new NotFoundException("Фильм с идентификатором [" + filmId + "] не найден.");
         }
         films.remove(filmId);

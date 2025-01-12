@@ -76,9 +76,8 @@ class FilmDbStorage implements FilmStorage {
         jdbcTemplate.update(" DELETE FROM film ");
     }
 
+
     @Override
-    public void deleteFilm(long filmId) {
-        jdbcTemplate.update("DELETE FROM film WHERE film_id = ?", filmId);
     public List<Film> findByIds(List<Long> ids) {
         if (ids.isEmpty()) {
             return List.of();
@@ -87,6 +86,11 @@ class FilmDbStorage implements FilmStorage {
         String sql = "SELECT * FROM film WHERE film_id IN (" + String.join(",", Collections.nCopies(ids.size(), "?")) + ")";
 
         return jdbcTemplate.query(sql, filmRowMapper, ids.toArray());
+    }
+
+    @Override
+    public void deleteFilm(long filmId) {
+        jdbcTemplate.update("DELETE FROM film WHERE film_id = ?", filmId);
     }
 
 }
