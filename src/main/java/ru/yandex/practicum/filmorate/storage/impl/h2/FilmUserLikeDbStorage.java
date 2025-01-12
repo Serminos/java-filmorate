@@ -61,4 +61,9 @@ class FilmUserLikeDbStorage implements FilmUserLikeStorage {
         return jdbcTemplate.query(" SELECT * FROM film_user_like WHERE user_id = ?",
                 filmUserLikeRowMapper, userId);
     }
+
+    @Override
+    public void removeAllLikesByUserId(long userId) {
+        jdbcTemplate.update("DELETE FROM film_user_like WHERE user_id = ?", userId);
+    }
 }
