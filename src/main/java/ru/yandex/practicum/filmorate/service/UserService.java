@@ -8,6 +8,7 @@ import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Friendship;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.service.mapper.UserMapper;
+import ru.yandex.practicum.filmorate.storage.FilmUserLikeStorage;
 import ru.yandex.practicum.filmorate.storage.FriendshipStorage;
 import ru.yandex.practicum.filmorate.storage.UserStorage;
 
@@ -16,14 +17,18 @@ import java.util.List;
 
 @Service
 public class UserService {
+
     private final UserStorage userStorage;
     private final FriendshipStorage friendshipStorage;
+    private final FilmUserLikeStorage filmUserLikeStorage;
 
     @Autowired
     public UserService(@Qualifier("userDbStorage") UserStorage userStorage,
-                       @Qualifier("friendshipDbStorage") FriendshipStorage friendshipStorage) {
+                       @Qualifier("friendshipDbStorage") FriendshipStorage friendshipStorage,
+                       @Qualifier("filmUserLikeDbStorage") FilmUserLikeStorage filmUserLikeStorage) {
         this.userStorage = userStorage;
         this.friendshipStorage = friendshipStorage;
+        this.filmUserLikeStorage = filmUserLikeStorage;
     }
 
     public UserDto create(UserDto user) {
@@ -100,6 +105,7 @@ public class UserService {
             throw new NotFoundException("Пользователь с ID [" + userId + "] не найден");
         }
         friendshipStorage.removeAllByUserId(userId);
+        filmUserLikeStorage.removeAllLikesByUserId(userId);
         userStorage.deleteUser(userId);
 
     }

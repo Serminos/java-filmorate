@@ -84,4 +84,10 @@ public class InMemoryFilmUserLikeStorage implements FilmUserLikeStorage {
         }
         return filmUserLikeAll;
     }
+
+    @Override
+    public void removeAllLikesByUserId(long userId) {
+        filmUserLike.forEach((filmId, userIds) -> userIds.remove(userId));
+        filmUserLike.entrySet().removeIf(entry -> entry.getValue().isEmpty());
+    }
 }
