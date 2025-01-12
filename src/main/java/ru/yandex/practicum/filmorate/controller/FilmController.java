@@ -62,4 +62,11 @@ public class FilmController {
         log.debug("Популярные фильмы - Топ - [{}]", count);
         return filmService.findPopularFilms(count);
     }
+
+    @DeleteMapping("/{id}")
+    public void deleteFilm(@PathVariable long id){
+        log.debug("РЈРґР°Р»РµРЅРёРµ С„РёР»СЊРјР° СЃ РёРґРµРЅС‚РёС„РёРєР°С‚РѕСЂРѕРј [{}]", id);
+        filmService.deleteFilm(id);
+    }
+
 }

@@ -74,4 +74,10 @@ class FilmDbStorage implements FilmStorage {
     public void clear() {
         jdbcTemplate.update(" DELETE FROM film ");
     }
+
+    @Override
+    public void deleteFilm(long filmId) {
+        jdbcTemplate.update("DELETE FROM film WHERE film_id = ?", filmId);
+    }
+
 }

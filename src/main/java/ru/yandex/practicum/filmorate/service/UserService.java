@@ -93,4 +93,10 @@ public class UserService {
         }
         return friends;
     }
+
+    public void deleteUser(long userId){
+        checkUserExists(userId);
+        userStorage.deleteUser(userId);
+    }
+
 }
