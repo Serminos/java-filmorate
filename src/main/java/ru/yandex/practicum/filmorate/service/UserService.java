@@ -1,5 +1,6 @@
 package ru.yandex.practicum.filmorate.service;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
@@ -17,6 +18,7 @@ import ru.yandex.practicum.filmorate.storage.UserStorage;
 import java.util.*;
 
 @Service
+@Slf4j
 public class UserService {
     private final UserStorage userStorage;
     private final FriendshipStorage friendshipStorage;
@@ -107,18 +109,19 @@ public class UserService {
         checkUserExists(userId);
 
         Set<Long> currentUserLikes = filmUserLikeStorage.findUserLikedFilmIds(userId);
+        log.debug("Лайки текущего пользователя [{}]: {}", userId, currentUserLikes);
 
         List<Long> otherUsers = userStorage.all().stream()
                 .map(User::getId)
                 .filter(id -> id != userId)
                 .toList();
+        log.debug("Другие пользователи: {}", otherUsers);
 
         Long mostSimilarUserId = null;
         int maxCommonLikes = 0;
 
         for (Long otherUserId : otherUsers) {
             Set<Long> otherUserLikes = filmUserLikeStorage.findUserLikedFilmIds(otherUserId);
-
             int commonLikes = (int) currentUserLikes.stream()
                     .filter(otherUserLikes::contains)
                     .count();
@@ -129,6 +132,8 @@ public class UserService {
             }
         }
 
+        log.debug("Самый похожий пользователь: {}, количество общих лайков: {}", mostSimilarUserId, maxCommonLikes);
+
         if (mostSimilarUserId == null) {
             return List.of();
         }
@@ -137,10 +142,14 @@ public class UserService {
         Set<Long> recommendedFilmIds = new HashSet<>(similarUserLikes);
         recommendedFilmIds.removeAll(currentUserLikes);
 
+        log.debug("Рекомендованные фильмы: {}", recommendedFilmIds);
+
         return recommendedFilmIds.stream()
                 .map(filmStorage::findById)
+                .filter(Objects::nonNull)
                 .toList();
     }
+
 
 
 }
