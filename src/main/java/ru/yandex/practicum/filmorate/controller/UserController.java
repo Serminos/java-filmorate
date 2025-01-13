@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.dto.UserDto;
+import ru.yandex.practicum.filmorate.model.Event;
 import ru.yandex.practicum.filmorate.service.UserService;
 
 import java.util.List;
@@ -61,5 +62,13 @@ public class UserController {
     @GetMapping("/{id}/friends/common/{friendId}")
     public List<UserDto> commonFriends(@PathVariable long id, @PathVariable long friendId) {
         return userService.commonFriends(id, friendId);
+    }
+
+    @GetMapping("/{id}/feed")
+    // новостная лента
+    public List<Event> getEvent(@PathVariable int id) {
+        List<Event> feeds = userService.getUserEvent(id);
+        log.debug("Получение новостной ленты пользователя - [{}]", id);
+        return feeds;
     }
 }

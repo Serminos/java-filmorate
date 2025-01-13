@@ -3,12 +3,14 @@ package ru.yandex.practicum.filmorate.storage.impl.inmemory;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
+import ru.yandex.practicum.filmorate.model.Event;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.UserStorage;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.stream.Collectors;
 
 @Component
@@ -68,6 +70,11 @@ public class InMemoryUserStorage implements UserStorage {
     @Override
     public void deleteUser(long id) {
         users.remove(id);
+    }
+
+    @Override
+    public List<Event> getUserEvent(Integer id) {
+        return null;
     }
 
     public void clear() {

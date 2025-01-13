@@ -25,6 +25,7 @@ public class FilmService {
     private final UserStorage userStorage;
     private final FilmGenreStorage filmGenreStorage;
     private final FilmUserLikeStorage filmUserLikeStorage;
+    private final EventStorage eventStorage;
     private final Map<Long, RatingMpa> cacheRatingMpa;
     private final Map<Long, Genre> cacheGenre;
 
@@ -32,12 +33,14 @@ public class FilmService {
                        @Qualifier("userDbStorage") UserStorage userStorage,
                        @Qualifier("filmGenreDbStorage") FilmGenreStorage filmGenreStorage,
                        @Qualifier("filmUserLikeDbStorage") FilmUserLikeStorage filmUserLikeStorage,
+                       EventStorage eventStorage,
                        @Qualifier("genreDbStorage") GenreStorage genreStorage,
                        @Qualifier("ratingMpaDbStorage") RatingMpaStorage ratingMpaStorage) {
         this.filmStorage = filmStorage;
         this.userStorage = userStorage;
         this.filmGenreStorage = filmGenreStorage;
         this.filmUserLikeStorage = filmUserLikeStorage;
+        this.eventStorage = eventStorage;
         this.cacheRatingMpa = ratingMpaStorage.all().stream()
                 .collect(Collectors.toMap(RatingMpa::getRatingMpaId, Function.identity()));
         this.cacheGenre = genreStorage.all().stream()
@@ -134,12 +137,14 @@ public class FilmService {
         checkFilmExists(filmId);
         checkUserExists(userId);
         filmUserLikeStorage.add(filmId, userId);
+        eventStorage.createEvent(userId, "LIKE", "ADD", filmId);
     }
 
     public void deleteLike(long filmId, long userId) {
         checkFilmExists(filmId);
         checkUserExists(userId);
         filmUserLikeStorage.remove(filmId, userId);
+        eventStorage.createEvent(userId, "LIKE", "REMOVE", filmId);
     }
 
     public void clear() {
