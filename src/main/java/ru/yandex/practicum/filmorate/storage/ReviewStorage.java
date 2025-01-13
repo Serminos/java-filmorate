@@ -11,7 +11,7 @@ public interface ReviewStorage {
 
     Review findById(long reviewId);
 
-    List<Review> findByFilmId(Long filmId, long count);
+    List<Review> findByFilmId(Long filmId, long limit);
 
     List<Review> all(long count);
 

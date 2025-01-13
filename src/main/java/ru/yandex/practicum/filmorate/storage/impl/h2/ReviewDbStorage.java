@@ -55,14 +55,14 @@ class ReviewDbStorage implements ReviewStorage {
     }
 
     @Override
-    public List<Review> findByFilmId(Long filmId, long count) {
+    public List<Review> findByFilmId(Long filmId, long limit) {
         return jdbcTemplate.query("SELECT * FROM review WHERE film_id = ?",
                 reviewRowMapper, filmId);
     }
 
     @Override
-    public List<Review> all(long count) {
-        return jdbcTemplate.query("SELECT * FROM review LIMIT ?", reviewRowMapper, count);
+    public List<Review> all(long limit) {
+        return jdbcTemplate.query("SELECT * FROM review LIMIT ?", reviewRowMapper, limit);
     }
 
     @Override

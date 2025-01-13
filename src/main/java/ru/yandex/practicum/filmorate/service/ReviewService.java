@@ -24,7 +24,9 @@ public class ReviewService {
 
     @Autowired
     public ReviewService(@Qualifier("userDbStorage") UserStorage userStorage,
-                         FilmService filmService, @Qualifier("reviewDbStorage") ReviewStorage reviewStorage, ReviewLikeStorage reviewLikeStorage) {
+                         FilmService filmService,
+                         @Qualifier("reviewDbStorage") ReviewStorage reviewStorage,
+                         @Qualifier("reviewLikeDbStorage") ReviewLikeStorage reviewLikeStorage) {
         this.userStorage = userStorage;
         this.filmService = filmService;
         this.reviewStorage = reviewStorage;
@@ -82,27 +84,15 @@ public class ReviewService {
         reviewLikeStorage.create(reviewDislike);
     }
 
-    public void removeLike(long reviewId, long userId) {
+    public void deleteLike(long reviewId, long userId) {
         reviewLikeStorage.deleteByReviewIdAndUserId(reviewId, userId);
     }
 
-    public void removeDislike(long reviewId, long userId) {
+    public void deleteDislike(long reviewId, long userId) {
         reviewLikeStorage.deleteByReviewIdAndUserId(reviewId, userId);
     }
 
-    public List<ReviewDto> getAllReview(long count) {
-        List<ReviewDto> reviewDtos = new ArrayList<>();
-        List<Review> reviews = reviewStorage.all(count);
-        if (reviews.isEmpty()) {
-            return reviewDtos;
-        }
-        for (Review review : reviews) {
-            reviewDtos.add(ReviewMapper.mapToReviewDto(review));
-        }
-        return reviewDtos;
-    }
-
-    public ReviewDto getReviewById(long reviewId) {
+    public ReviewDto findById(long reviewId) {
         Review review = reviewStorage.findById(reviewId);
         if (review == null) {
             throw new NotFoundException("Отзыв не найден.");
@@ -117,32 +107,27 @@ public class ReviewService {
         return reviewLikes.isEmpty() ? 0 : reviewLikes.stream().mapToInt(item -> item.getIsLike() ? 1 : -1).sum();
     }
 
-    public List<ReviewDto> getReviewByFilmId(Long filmId, Long count) {
+    public List<ReviewDto> findByFilmId(Long filmId, Long limit) {
         List<ReviewDto> reviewDtos = new ArrayList<>();
-        List<Review> reviews = new ArrayList<>();
-
-        if (filmId == null) {
-            reviews = reviewStorage.all(count);
-        } else {
-            reviews = reviewStorage.findByFilmId(filmId, count);
-        }
-
+        List<Review> reviews = reviewStorage.findByFilmId(filmId, limit);
         if (reviews.isEmpty()) {
             return new ArrayList<>();
         }
-
         for (Review review : reviews) {
             ReviewDto reviewDto1 = ReviewMapper.mapToReviewDto(review);
             reviewDto1.setUseful(getUseful(review));
             reviewDtos.add(reviewDto1);
         }
-
         return reviewDtos;
     }
 
-    public List<ReviewDto> all(long limit) {
+    public List<ReviewDto> all(long count) {
         List<ReviewDto> reviewDtos = new ArrayList<>();
-        for (Review review : reviewStorage.all(limit)) {
+        List<Review> reviews = reviewStorage.all(count);
+        if (reviews.isEmpty()) {
+            return reviewDtos;
+        }
+        for (Review review : reviews) {
             reviewDtos.add(ReviewMapper.mapToReviewDto(review));
         }
         return reviewDtos;

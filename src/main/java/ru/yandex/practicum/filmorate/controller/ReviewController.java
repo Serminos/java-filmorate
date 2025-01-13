@@ -17,7 +17,7 @@ import java.util.List;
 @Validated
 public class ReviewController {
     private static final Logger log = LoggerFactory.getLogger(ReviewController.class);
-    ReviewService reviewService;
+    private final ReviewService reviewService;
 
     @Autowired
     public ReviewController(ReviewService reviewService) {
@@ -26,38 +26,37 @@ public class ReviewController {
 
     @PostMapping
     public ReviewDto create(@Valid @RequestBody ReviewDto reviewDto) {
-        log.debug("Создание отзывы [{}]", reviewDto);
+        log.debug("Создание отзыва [{}]", reviewDto);
         return reviewService.create(reviewDto);
     }
 
     @PutMapping
     public ReviewDto update(@Valid @RequestBody ReviewDto reviewDto) {
-        log.debug("Обновление отзывы [{}]", reviewDto);
+        log.debug("Обновление отзыва [{}]", reviewDto);
         return reviewService.update(reviewDto);
     }
 
     @DeleteMapping("/{id}")
-    public void delete(@PathVariable Long id) {
+    public void deleteById(@PathVariable Long id) {
         log.debug("Удаление отзыва [{}]", id);
         reviewService.deleteById(id);
     }
 
     @GetMapping("/{id}")
-    public ReviewDto getReviewById(@PathVariable Long id) {
+    public ReviewDto getById(@PathVariable Long id) {
         log.debug("Получение отзыва [{}]", id);
-        ReviewDto reviewDtoCreated = reviewService.getReviewById(id);
-        return reviewDtoCreated;
+        return reviewService.findById(id);
     }
 
     @GetMapping
-    public List<ReviewDto> getReviews(@RequestParam(defaultValue = "0") Long filmId,
+    public List<ReviewDto> getReviews(@RequestParam(required = false) Long filmId,
                                       @RequestParam(defaultValue = "10") Long count) {
         if (filmId == null) {
             log.debug("Получение всех популярных отзывов в количестве [{}]", count);
-            return reviewService.getAllReview(count);
+            return reviewService.all(count);
         } else {
             log.debug("Получение всех популярных отзывов к фильму [{}] в количестве [{}]", filmId, count);
-            return reviewService.getReviewByFilmId(filmId, count);
+            return reviewService.findByFilmId(filmId, count);
         }
     }
 
@@ -68,9 +67,9 @@ public class ReviewController {
     }
 
     @DeleteMapping("/{id}/like/{userId}")
-    public void removeReviewLike(@PathVariable long id, @PathVariable long userId) {
+    public void deleteReviewLike(@PathVariable long id, @PathVariable long userId) {
         log.debug("Удаление лайка к ревью [{}] - пользователем [{}]", id, userId);
-        reviewService.removeLike(id, userId);
+        reviewService.deleteLike(id, userId);
     }
 
     @PutMapping("/{id}/dislike/{userId}")
@@ -80,8 +79,8 @@ public class ReviewController {
     }
 
     @DeleteMapping("/{id}/dislike/{userId}")
-    public void removeReviewDislike(@PathVariable long id, @PathVariable long userId) {
+    public void deleteReviewDislike(@PathVariable long id, @PathVariable long userId) {
         log.debug("Удаление дизлайка к ревью [{}] - пользователем [{}]", id, userId);
-        reviewService.removeDislike(id, userId);
+        reviewService.deleteDislike(id, userId);
     }
 }
