@@ -11,3 +11,6 @@ MERGE INTO RATING_MPA (RATING_MPA_ID, NAME, DESCRIPTION) VALUES(3, 'PG-13', 'Д�
 MERGE INTO RATING_MPA (RATING_MPA_ID, NAME, DESCRIPTION) VALUES(4, 'R', 'Лицам до 17 лет просматривать фильм можно только в присутствии взрослого');
 MERGE INTO RATING_MPA (RATING_MPA_ID, NAME, DESCRIPTION) VALUES(5, 'NC-17', 'Лицам до 18 лет просмотр запрещён');
 
+
+
+

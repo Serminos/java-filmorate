@@ -25,8 +25,8 @@ class FilmDbStorage implements FilmStorage {
     @Override
     public Film create(Film film) {
         String sql = " INSERT INTO film " +
-                     " (name, description, release_date, duration, rating_mpa_id) " +
-                     " VALUES (?, ?, ?, ?, ?) ";
+                " (name, description, release_date, duration, rating_mpa_id) " +
+                " VALUES (?, ?, ?, ?, ?) ";
         KeyHolder keyHolder = new GeneratedKeyHolder();
         jdbcTemplate.update(
                 connection -> {
@@ -46,8 +46,8 @@ class FilmDbStorage implements FilmStorage {
     public Film update(Film film) {
         Long filmId = film.getId();
         String sql = " UPDATE film " +
-                     " SET name = ?, description = ?, release_date = ?, duration = ?, rating_mpa_id = ? " +
-                     " WHERE film_id = ? ";
+                " SET name = ?, description = ?, release_date = ?, duration = ?, rating_mpa_id = ? " +
+                " WHERE film_id = ? ";
         jdbcTemplate.update(sql, film.getName(), film.getDescription(), film.getReleaseDate(), film.getDuration(),
                 film.getRatingMpaId(), filmId);
         return film;
@@ -74,4 +74,19 @@ class FilmDbStorage implements FilmStorage {
     public void clear() {
         jdbcTemplate.update(" DELETE FROM film ");
     }
+
+    @Override
+    public List<Film> findFilmsLikedByUser(long userId) {
+        String sql = "SELECT f.* FROM film f " +
+                "JOIN film_user_like ful ON f.film_id = ful.film_id " +
+                "WHERE ful.user_id = ?";
+        return jdbcTemplate.query(sql, filmRowMapper, userId);
+    }
+
+    @Override
+    public int countLikes(long filmId) {
+        String sql = "SELECT COUNT(user_id) FROM film_user_like WHERE film_id = ?";
+        return jdbcTemplate.queryForObject(sql, Integer.class, filmId);
+    }
+
 }

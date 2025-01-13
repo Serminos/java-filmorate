@@ -13,6 +13,7 @@ import java.util.List;
 @Qualifier("InMemoryFilmStorage")
 public class InMemoryFilmStorage implements FilmStorage {
     private final HashMap<Long, Film> films = new HashMap<>();
+    private final HashMap<Long, List<Long>> filmLikes = new HashMap<>();
 
     public Film create(Film film) {
         film.setId(getNextId());
@@ -60,6 +61,20 @@ public class InMemoryFilmStorage implements FilmStorage {
         }*/
         return true;
     }
+
+    @Override
+    public List<Film> findFilmsLikedByUser(long userId) {
+        return filmLikes.entrySet().stream()
+                .filter(entry -> entry.getValue().contains(userId))
+                .map(entry -> films.get(entry.getKey()))
+                .toList();
+    }
+
+    @Override
+    public int countLikes(long filmId) {
+        return filmLikes.getOrDefault(filmId, List.of()).size();
+    }
+
 
     public void clear() {
         films.clear();

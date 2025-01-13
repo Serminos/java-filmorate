@@ -109,13 +109,13 @@ public class UserService {
         checkUserExists(userId);
 
         Set<Long> currentUserLikes = filmUserLikeStorage.findUserLikedFilmIds(userId);
-        log.debug("Лайки текущего пользователя [{}]: {}", userId, currentUserLikes);
+        log.debug("User [{}] likes: {}", userId, currentUserLikes);
 
         List<Long> otherUsers = userStorage.all().stream()
                 .map(User::getId)
                 .filter(id -> id != userId)
                 .toList();
-        log.debug("Другие пользователи: {}", otherUsers);
+        log.debug("Other users: {}", otherUsers);
 
         Long mostSimilarUserId = null;
         int maxCommonLikes = 0;
@@ -125,7 +125,7 @@ public class UserService {
             int commonLikes = (int) currentUserLikes.stream()
                     .filter(otherUserLikes::contains)
                     .count();
-            log.debug("Общие лайки с пользователем [{}]: {}", otherUserId, commonLikes);
+            log.debug("Common likes with user [{}]: {}", otherUserId, commonLikes);
 
             if (commonLikes > maxCommonLikes) {
                 maxCommonLikes = commonLikes;
@@ -133,7 +133,7 @@ public class UserService {
             }
         }
 
-        log.debug("Самый похожий пользователь [{}] с общими лайками: {}", mostSimilarUserId, maxCommonLikes);
+        log.debug("Most similar user: {}", mostSimilarUserId);
 
         if (mostSimilarUserId == null) {
             return List.of();
@@ -143,14 +143,11 @@ public class UserService {
         Set<Long> recommendedFilmIds = new HashSet<>(similarUserLikes);
         recommendedFilmIds.removeAll(currentUserLikes);
 
-        log.debug("Рекомендованные фильмы (ID): {}", recommendedFilmIds);
+        log.debug("Recommended films (IDs): {}", recommendedFilmIds);
 
         return recommendedFilmIds.stream()
                 .map(filmStorage::findById)
                 .filter(Objects::nonNull)
                 .toList();
     }
-
-
-
 }
