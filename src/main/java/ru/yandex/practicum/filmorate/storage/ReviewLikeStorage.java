@@ -11,7 +11,7 @@ public interface ReviewLikeStorage {
 
     List<ReviewLike> all();
 
-    List<ReviewLike> findByReviewId(long reviewId, long count);
+    List<ReviewLike> findByReviewId(long reviewId);
 
     ReviewLike findByReviewIdAndUserId(long reviewId, long userId);
 

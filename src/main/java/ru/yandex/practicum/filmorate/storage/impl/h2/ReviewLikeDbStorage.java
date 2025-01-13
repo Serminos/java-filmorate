@@ -34,7 +34,7 @@ class ReviewLikeDbStorage implements ReviewLikeStorage {
     }
 
     @Override
-    public List<ReviewLike> findByReviewId(long reviewId, long count) {
+    public List<ReviewLike> findByReviewId(long reviewId) {
         return jdbcTemplate.query("SELECT * FROM review_like WHERE review_id = ?",
                 reviewLikeRowMapper, reviewId);
     }

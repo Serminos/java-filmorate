@@ -14,6 +14,7 @@ import ru.yandex.practicum.filmorate.storage.UserStorage;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class ReviewService {
@@ -35,9 +36,9 @@ public class ReviewService {
 
     public ReviewDto create(ReviewDto reviewDto) {
         checkReview(reviewDto);
-        ReviewDto reviewDtoCreated = ReviewMapper.mapToReviewDto(reviewStorage.create(ReviewMapper.mapToReview(reviewDto)));
-        reviewDtoCreated.setUseful(0);
-        return reviewDtoCreated;
+        reviewDto.setUseful(0);
+        return ReviewMapper.mapToReviewDto(
+                reviewStorage.create(ReviewMapper.mapToReview(reviewDto)));
     }
 
     private void checkReviewExists(long reviewId) {
@@ -58,10 +59,15 @@ public class ReviewService {
     public ReviewDto update(ReviewDto reviewDto) {
         checkReviewExists(reviewDto.getReviewId());
         Review review = ReviewMapper.mapToReview(reviewDto);
+        review.setUseful(calculateUsefulByReviewId(review.getId()));
         reviewStorage.update(review);
-        ReviewDto reviewDto1 = ReviewMapper.mapToReviewDto(review);
-        reviewDto1.setUseful(getUseful(review));
-        return reviewDto1;
+        return ReviewMapper.mapToReviewDto(review);
+    }
+
+    public void updateReviewUseful(long reviewId) {
+        Review review = reviewStorage.findById(reviewId);
+        review.setUseful(calculateUsefulByReviewId(review.getId()));
+        reviewStorage.update(review);
     }
 
     public void deleteById(long reviewId) {
@@ -74,6 +80,7 @@ public class ReviewService {
             reviewLikeStorage.deleteByReviewIdAndUserId(reviewId, userId);
         }
         reviewLikeStorage.create(reviewLike);
+        updateReviewUseful(reviewId);
     }
 
     public void addDislike(long reviewId, long userId) {
@@ -82,14 +89,17 @@ public class ReviewService {
             reviewLikeStorage.deleteByReviewIdAndUserId(reviewId, userId);
         }
         reviewLikeStorage.create(reviewDislike);
+        updateReviewUseful(reviewId);
     }
 
     public void deleteLike(long reviewId, long userId) {
         reviewLikeStorage.deleteByReviewIdAndUserId(reviewId, userId);
+        updateReviewUseful(reviewId);
     }
 
     public void deleteDislike(long reviewId, long userId) {
         reviewLikeStorage.deleteByReviewIdAndUserId(reviewId, userId);
+        updateReviewUseful(reviewId);
     }
 
     public ReviewDto findById(long reviewId) {
@@ -97,40 +107,28 @@ public class ReviewService {
         if (review == null) {
             throw new NotFoundException("Отзыв не найден.");
         }
-        ReviewDto reviewDto = ReviewMapper.mapToReviewDto(review);
-        reviewDto.setUseful(getUseful(review));
-        return reviewDto;
+        return ReviewMapper.mapToReviewDto(review);
     }
 
-    private Integer getUseful(Review review) {
-        List<ReviewLike> reviewLikes = reviewLikeStorage.findByReviewId(review.getId(), 0);
+    private Integer calculateUsefulByReviewId(long reviewId) {
+        List<ReviewLike> reviewLikes = reviewLikeStorage.findByReviewId(reviewId);
         return reviewLikes.isEmpty() ? 0 : reviewLikes.stream().mapToInt(item -> item.getIsLike() ? 1 : -1).sum();
     }
 
     public List<ReviewDto> findByFilmId(Long filmId, Long limit) {
-        List<ReviewDto> reviewDtos = new ArrayList<>();
         List<Review> reviews = reviewStorage.findByFilmId(filmId, limit);
         if (reviews.isEmpty()) {
             return new ArrayList<>();
         }
-        for (Review review : reviews) {
-            ReviewDto reviewDto1 = ReviewMapper.mapToReviewDto(review);
-            reviewDto1.setUseful(getUseful(review));
-            reviewDtos.add(reviewDto1);
-        }
-        return reviewDtos;
+        return reviews.stream().map(ReviewMapper::mapToReviewDto).collect(Collectors.toList());
     }
 
-    public List<ReviewDto> all(long count) {
-        List<ReviewDto> reviewDtos = new ArrayList<>();
-        List<Review> reviews = reviewStorage.all(count);
+    public List<ReviewDto> all(long limit) {
+        List<Review> reviews = reviewStorage.all(limit);
         if (reviews.isEmpty()) {
-            return reviewDtos;
+            return new ArrayList<>();
         }
-        for (Review review : reviews) {
-            reviewDtos.add(ReviewMapper.mapToReviewDto(review));
-        }
-        return reviewDtos;
+        return reviews.stream().map(ReviewMapper::mapToReviewDto).collect(Collectors.toList());
     }
 
     public void clear() {

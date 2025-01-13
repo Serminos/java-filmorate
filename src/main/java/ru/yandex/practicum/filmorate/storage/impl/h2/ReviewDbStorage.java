@@ -23,7 +23,7 @@ class ReviewDbStorage implements ReviewStorage {
 
     @Override
     public Review create(Review review) {
-        String sql = "INSERT INTO review (content, is_positive, user_id, film_id) VALUES (?, ?, ?, ?)";
+        String sql = "INSERT INTO review (content, is_positive, user_id, film_id, useful) VALUES (?, ?, ?, ?, ?)";
 
         KeyHolder keyHolder = new GeneratedKeyHolder();
         jdbcTemplate.update(
@@ -33,6 +33,7 @@ class ReviewDbStorage implements ReviewStorage {
                     ps.setBoolean(2, review.getIsPositive());
                     ps.setLong(3, review.getUserId());
                     ps.setLong(4, review.getFilmId());
+                    ps.setInt(5, review.getUseful());
                     return ps;
                 }, keyHolder);
         review.setId(Objects.requireNonNull(keyHolder.getKey()).longValue());
@@ -42,27 +43,27 @@ class ReviewDbStorage implements ReviewStorage {
     @Override
     public Review update(Review review) {
         String sql = "UPDATE review SET content = ?, is_positive = ?, " +
-                "user_id = ?, film_id = ? WHERE review_id = ?";
+                "user_id = ?, film_id = ?, useful = ? WHERE review_id = ?";
         int res = jdbcTemplate.update(sql, review.getContent(), review.getIsPositive(), review.getUserId(),
-                review.getFilmId(), review.getId());
+                review.getFilmId(), review.getUseful(), review.getId());
         return review;
     }
 
     @Override
     public Review findById(long reviewId) {
-        return jdbcTemplate.query("SELECT * FROM review WHERE review_id = ?",
+        return jdbcTemplate.query("SELECT * FROM review WHERE review_id = ? ORDER BY useful",
                 reviewRowMapper, reviewId).stream().findFirst().orElse(null);
     }
 
     @Override
     public List<Review> findByFilmId(Long filmId, long limit) {
-        return jdbcTemplate.query("SELECT * FROM review WHERE film_id = ?",
-                reviewRowMapper, filmId);
+        return jdbcTemplate.query("SELECT * FROM review WHERE film_id = ? ORDER BY useful LIMIT ?",
+                reviewRowMapper, filmId, limit);
     }
 
     @Override
     public List<Review> all(long limit) {
-        return jdbcTemplate.query("SELECT * FROM review LIMIT ?", reviewRowMapper, limit);
+        return jdbcTemplate.query("SELECT * FROM review ORDER BY useful LIMIT ?", reviewRowMapper, limit);
     }
 
     @Override

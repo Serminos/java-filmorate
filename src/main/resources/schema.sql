@@ -64,6 +64,7 @@ CREATE TABLE IF NOT EXISTS review (
                                      is_positive boolean NOT NULL,
                                      user_id int8 NOT NULL,
                                      film_id int8 NOT NULL,
+                                     useful int8 NOT NULL,
     CONSTRAINT review_pk PRIMARY KEY (review_id),
     CONSTRAINT review_user_fk FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE,
     CONSTRAINT review_film_fk FOREIGN KEY (film_id) REFERENCES film(film_id) ON DELETE CASCADE

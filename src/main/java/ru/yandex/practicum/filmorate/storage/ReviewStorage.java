@@ -13,7 +13,7 @@ public interface ReviewStorage {
 
     List<Review> findByFilmId(Long filmId, long limit);
 
-    List<Review> all(long count);
+    List<Review> all(long limit);
 
     void clear();
 
