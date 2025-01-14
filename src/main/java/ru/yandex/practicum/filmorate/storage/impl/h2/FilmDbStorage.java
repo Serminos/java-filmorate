@@ -86,6 +86,8 @@ class FilmDbStorage implements FilmStorage {
     @Override
     public int countLikes(long filmId) {
         String sql = "SELECT COUNT(user_id) FROM film_user_like WHERE film_id = ?";
+
         return jdbcTemplate.queryForObject(sql, Integer.class, filmId);
     }
+
 }
