@@ -12,7 +12,6 @@ import ru.yandex.practicum.filmorate.storage.impl.h2.mappers.FilmRowMapper;
 
 import java.sql.Date;
 import java.sql.PreparedStatement;
-import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
@@ -90,18 +89,5 @@ class FilmDbStorage implements FilmStorage {
 
         return jdbcTemplate.queryForObject(sql, Integer.class, filmId);
     }
-<<<<<<< HEAD
 
 }
-=======
-    public List<Film> findByIds(List<Long> ids) {
-        if (ids.isEmpty()) {
-            return List.of();
-        }
-
-        String sql = "SELECT * FROM film WHERE film_id IN (" + String.join(",", Collections.nCopies(ids.size(), "?")) + ")";
-
-        return jdbcTemplate.query(sql, filmRowMapper, ids.toArray());
-    }
-}
->>>>>>> 2ff1e8364a4983e0e1bd123aa8723b812f73f167

@@ -62,10 +62,4 @@ public class FilmController {
         log.debug("Популярные фильмы - Топ - [{}]", count);
         return filmService.findPopularFilms(count);
     }
-
-    @GetMapping("/common")
-    public List<FilmDto> getCommonFilms(@RequestParam long userId, @RequestParam long friendId) {
-        log.debug("Получен запрос на общие фильмы для пользователей: userId=[{}], friendId=[{}]", userId, friendId);
-        return filmService.getCommonFilms(userId, friendId);
-    }
 }

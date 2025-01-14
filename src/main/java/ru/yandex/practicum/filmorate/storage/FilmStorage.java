@@ -20,6 +20,4 @@ public interface FilmStorage {
     List<Film> findFilmsLikedByUser(long userId);
 
     int countLikes(long filmId);
-
-    List<Film> findByIds(List<Long> ids);
 }

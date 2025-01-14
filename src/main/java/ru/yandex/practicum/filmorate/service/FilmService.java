@@ -7,7 +7,6 @@ import ru.yandex.practicum.filmorate.dto.GenreDto;
 import ru.yandex.practicum.filmorate.exception.BadRequestException;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Film;
-import ru.yandex.practicum.filmorate.model.FilmUserLike;
 import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.model.RatingMpa;
 import ru.yandex.practicum.filmorate.service.mapper.FilmMapper;
@@ -47,7 +46,7 @@ public class FilmService {
     private void checkRatingMpaAndGenresFilmDto(FilmDto filmDto) {
         if (filmDto.getMpa() != null && filmDto.getMpa().getId() != null) {
             if (cacheRatingMpa.get(filmDto.getMpa().getId()) == null) {
-                throw new BadRequestException("Указанный ID-рейтинга MPA не найден - " +
+                throw new BadRequestException("РЈРєР°Р·Р°РЅРЅС‹Р№ ID-СЂРµР№С‚РёРЅРіР° MPA РЅРµ РЅР°Р№РґРµРЅ - " +
                         "[{" + filmDto.getMpa().getId() + "}]");
             }
             cacheRatingMpa.get(filmDto.getMpa().getId());
@@ -55,7 +54,7 @@ public class FilmService {
         if (filmDto.getGenres() != null) {
             for (GenreDto genreDto : filmDto.getGenres()) {
                 if (cacheGenre.get(genreDto.getId()) == null) {
-                    throw new BadRequestException("Указанный ID-жанра не найден - " +
+                    throw new BadRequestException("РЈРєР°Р·Р°РЅРЅС‹Р№ ID-Р¶Р°РЅСЂР° РЅРµ РЅР°Р№РґРµРЅ - " +
                             "[{" + genreDto.getId() + "}]");
                 }
             }
@@ -120,13 +119,13 @@ public class FilmService {
 
     private void checkFilmExists(long filmId) {
         if (filmStorage.findById(filmId) == null) {
-            throw new NotFoundException("Фильм не найден.");
+            throw new NotFoundException("Р¤РёР»СЊРј РЅРµ РЅР°Р№РґРµРЅ.");
         }
     }
 
     private void checkUserExists(long userId) {
         if (userStorage.findById(userId) == null) {
-            throw new NotFoundException("Пользователь не найден.");
+            throw new NotFoundException("РџРѕР»СЊР·РѕРІР°С‚РµР»СЊ РЅРµ РЅР°Р№РґРµРЅ.");
         }
     }
 
@@ -172,30 +171,5 @@ public class FilmService {
             filmDtos.add(filmDto);
         }
         return filmDtos;
-    }
-
-    public List<FilmDto> getCommonFilms(long userId, long friendId) {
-        checkUserExists(userId);
-        checkUserExists(friendId);
-
-        List<Long> userLikedFilmIds = filmUserLikeStorage.findFilmLikeByUserId(userId)
-                .stream()
-                .map(FilmUserLike::getFilmId)
-                .collect(Collectors.toList());
-
-        List<Long> friendLikedFilmIds = filmUserLikeStorage.findFilmLikeByUserId(friendId)
-                .stream()
-                .map(FilmUserLike::getFilmId)
-                .collect(Collectors.toList());
-
-        userLikedFilmIds.retainAll(friendLikedFilmIds);
-
-        if (userLikedFilmIds.isEmpty()) {
-            return List.of();
-        }
-
-        List<Film> films = filmStorage.findByIds(userLikedFilmIds);
-
-        return mapFilmsToFilmDtosAndAddDopInfo(films);
     }
 }
