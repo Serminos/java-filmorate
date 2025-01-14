@@ -28,8 +28,8 @@ public class UserService {
     @Autowired
     public UserService(@Qualifier("userDbStorage") UserStorage userStorage,
                        @Qualifier("friendshipDbStorage") FriendshipStorage friendshipStorage,
-                       @Qualifier("InMemoryFilmStorage") FilmStorage filmStorage,
-                       @Qualifier("inMemoryFilmUserLikeStorage") FilmUserLikeStorage filmUserLikeStorage) {
+                       @Qualifier("filmDbStorage") FilmStorage filmStorage,
+                       @Qualifier("filmUserLikeDbStorage") FilmUserLikeStorage filmUserLikeStorage) {
         this.userStorage = userStorage;
         this.friendshipStorage = friendshipStorage;
         this.filmStorage = filmStorage;
@@ -37,21 +37,24 @@ public class UserService {
     }
 
     public UserDto create(UserDto user) {
+        log.info("Creating user: {}", user);
         return UserMapper.mapToUserDto(userStorage.create(UserMapper.mapToUser(user)));
     }
 
     private void checkUserExists(long userId) {
         if (userStorage.findById(userId) == null) {
-            throw new NotFoundException("РќРµ РЅР°Р№РґРµРЅ РїРѕР»СЊР·РѕРІР°С‚РµР»СЊ СЃ ID - [" + userId + "]");
+            throw new NotFoundException("User with ID - [" + userId + "] not found.");
         }
     }
 
     public UserDto update(UserDto user) {
+        log.info("Updating user: {}", user);
         checkUserExists(user.getId());
         return UserMapper.mapToUserDto(userStorage.update(UserMapper.mapToUser(user)));
     }
 
     public List<UserDto> all() {
+        log.info("Fetching all users");
         List<UserDto> userDtos = new ArrayList<>();
         for (User user : userStorage.all()) {
             userDtos.add(UserMapper.mapToUserDto(user));
@@ -60,14 +63,16 @@ public class UserService {
     }
 
     public void clear() {
+        log.info("Clearing all users and friendships");
         friendshipStorage.clear();
         userStorage.clear();
     }
 
     public void addFriend(long userId, long friendId) {
         if (userId == friendId) {
-            throw new NotFoundException("РќРµР»СЊР·СЏ РґРѕР±Р°РІРёС‚СЊ СЃРµР±СЏ РІ РґСЂСѓР·СЊСЏ");
+            throw new NotFoundException("Cannot add yourself as a friend.");
         }
+        log.info("Adding friend: userId={}, friendId={}", userId, friendId);
         checkUserExists(userId);
         checkUserExists(friendId);
         Friendship friendship = new Friendship(userId, friendId, false);
@@ -76,8 +81,9 @@ public class UserService {
 
     public void deleteFriend(long userId, long friendId) {
         if (userId == friendId) {
-            throw new NotFoundException("РќРµР»СЊР·СЏ СѓРґР°Р»РёС‚СЊ СЃРµР±СЏ РёР· РґСЂСѓР·РµР№");
+            throw new NotFoundException("Cannot remove yourself as a friend.");
         }
+        log.info("Deleting friend: userId={}, friendId={}", userId, friendId);
         checkUserExists(userId);
         checkUserExists(friendId);
         Friendship friendship = new Friendship(userId, friendId, false);
@@ -85,6 +91,7 @@ public class UserService {
     }
 
     public List<UserDto> commonFriends(long userId, long friendId) {
+        log.info("Fetching common friends for userId={} and friendId={}", userId, friendId);
         checkUserExists(userId);
         checkUserExists(friendId);
         List<Long> commonFriendsIds = friendshipStorage.findCommonFriendId(userId, friendId);
@@ -96,6 +103,7 @@ public class UserService {
     }
 
     public List<UserDto> getFriends(long userId) {
+        log.info("Fetching friends for userId={}", userId);
         checkUserExists(userId);
         List<UserDto> friends = new ArrayList<>();
         for (Friendship friendship : friendshipStorage.findAllByFromUserId(userId)) {
@@ -104,8 +112,8 @@ public class UserService {
         return friends;
     }
 
-
     public List<Film> getRecommendations(long userId) {
+        log.info("Fetching recommendations for userId={}", userId);
         checkUserExists(userId);
 
         Set<Long> currentUserLikes = filmUserLikeStorage.findUserLikedFilmIds(userId);

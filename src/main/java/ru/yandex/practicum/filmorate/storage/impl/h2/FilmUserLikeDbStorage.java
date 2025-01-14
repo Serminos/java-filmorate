@@ -66,7 +66,7 @@ class FilmUserLikeDbStorage implements FilmUserLikeStorage {
 
     @Override
     public Set<Long> findUserLikedFilmIds(long userId) {
-        String sql = "SELECT film_id FROM film_likes WHERE user_id = ?";
+        String sql = "SELECT film_id FROM film_user_like WHERE user_id = ?";
         return new HashSet<>(jdbcTemplate.queryForList(sql, Long.class, userId));
     }
 
