@@ -21,4 +21,5 @@ public interface FilmStorage {
 
     int countLikes(long filmId);
 
+    List<Film> findByIds(List<Long> ids);
 }
