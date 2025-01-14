@@ -16,4 +16,10 @@ public interface FilmStorage {
     boolean deleteLikeByUserId(long filmId, long userId);
 
     void clear();
+
+    List<Film> findFilmsLikedByUser(long userId);
+
+    int countLikes(long filmId);
+
+
 }

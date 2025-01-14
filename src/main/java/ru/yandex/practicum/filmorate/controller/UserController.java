@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.dto.UserDto;
+import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.service.UserService;
 
 import java.util.List;
@@ -62,4 +63,12 @@ public class UserController {
     public List<UserDto> commonFriends(@PathVariable long id, @PathVariable long friendId) {
         return userService.commonFriends(id, friendId);
     }
+
+    @GetMapping("/{id}/recommendations")
+    public List<Film> getRecommendations(@PathVariable long id) {
+        List<Film> recommendations = userService.getRecommendations(id);
+        log.debug("Recommendations for user {}: {}", id, recommendations);
+        return recommendations;
+    }
+
 }

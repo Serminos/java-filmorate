@@ -59,7 +59,7 @@ class UserDbStorage implements UserStorage {
         return jdbcTemplate.query("SELECT * FROM users", userRowMapper);
     }
 
-    @Override
+
     public void deleteUser(long userId) {
         jdbcTemplate.update("DELETE FROM users WHERE user_id = ?", userId);
     }
@@ -68,4 +68,11 @@ class UserDbStorage implements UserStorage {
     public void clear() {
         jdbcTemplate.update("DELETE FROM users");
     }
+
+    @Override
+    public List<User> findAllExcept(long userId) {
+        String sql = "SELECT * FROM users WHERE user_id != ?";
+        return jdbcTemplate.query(sql, userRowMapper, userId);
+    }
+
 }

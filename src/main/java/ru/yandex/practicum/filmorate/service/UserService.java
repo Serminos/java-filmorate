@@ -1,30 +1,41 @@
 package ru.yandex.practicum.filmorate.service;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.dto.UserDto;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
+import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Friendship;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.service.mapper.UserMapper;
+import ru.yandex.practicum.filmorate.storage.FilmStorage;
+import ru.yandex.practicum.filmorate.storage.FilmUserLikeStorage;
 import ru.yandex.practicum.filmorate.storage.FriendshipStorage;
 import ru.yandex.practicum.filmorate.storage.UserStorage;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 @Service
+@Slf4j
 public class UserService {
     private final UserStorage userStorage;
     private final FriendshipStorage friendshipStorage;
+    private final FilmStorage filmStorage;
+    private final FilmUserLikeStorage filmUserLikeStorage;
 
     @Autowired
     public UserService(@Qualifier("userDbStorage") UserStorage userStorage,
-                       @Qualifier("friendshipDbStorage") FriendshipStorage friendshipStorage) {
+                       @Qualifier("friendshipDbStorage") FriendshipStorage friendshipStorage,
+                       @Qualifier("filmDbStorage") FilmStorage filmStorage,
+                       @Qualifier("filmUserLikeDbStorage") FilmUserLikeStorage filmUserLikeStorage) {
         this.userStorage = userStorage;
         this.friendshipStorage = friendshipStorage;
+        this.filmStorage = filmStorage;
+        this.filmUserLikeStorage = filmUserLikeStorage;
     }
+
 
     public UserDto create(UserDto user) {
         return UserMapper.mapToUserDto(userStorage.create(UserMapper.mapToUser(user)));
@@ -92,5 +103,52 @@ public class UserService {
             friends.add(UserMapper.mapToUserDto(userStorage.findById(friendship.getToUserId())));
         }
         return friends;
+    }
+
+    public List<Film> getRecommendations(long userId) {
+        log.info("Fetching recommendations for userId={}", userId);
+        checkUserExists(userId);
+
+        Set<Long> currentUserLikes = filmUserLikeStorage.findUserLikedFilmIds(userId);
+        log.debug("User [{}] likes: {}", userId, currentUserLikes);
+
+        List<Long> otherUsers = userStorage.all().stream()
+                .map(User::getId)
+                .filter(id -> id != userId)
+                .toList();
+        log.debug("Other users: {}", otherUsers);
+
+        Long mostSimilarUserId = null;
+        int maxCommonLikes = 0;
+
+        for (Long otherUserId : otherUsers) {
+            Set<Long> otherUserLikes = filmUserLikeStorage.findUserLikedFilmIds(otherUserId);
+            int commonLikes = (int) currentUserLikes.stream()
+                    .filter(otherUserLikes::contains)
+                    .count();
+            log.debug("Common likes with user [{}]: {}", otherUserId, commonLikes);
+
+            if (commonLikes > maxCommonLikes) {
+                maxCommonLikes = commonLikes;
+                mostSimilarUserId = otherUserId;
+            }
+        }
+
+        log.debug("Most similar user: {}", mostSimilarUserId);
+
+        if (mostSimilarUserId == null) {
+            return List.of();
+        }
+
+        Set<Long> similarUserLikes = filmUserLikeStorage.findUserLikedFilmIds(mostSimilarUserId);
+        Set<Long> recommendedFilmIds = new HashSet<>(similarUserLikes);
+        recommendedFilmIds.removeAll(currentUserLikes);
+
+        log.debug("Recommended films (IDs): {}", recommendedFilmIds);
+
+        return recommendedFilmIds.stream()
+                .map(filmStorage::findById)
+                .filter(Objects::nonNull)
+                .toList();
     }
 }
