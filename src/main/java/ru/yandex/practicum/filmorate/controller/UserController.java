@@ -66,7 +66,7 @@ public class UserController {
 
     @GetMapping("/{id}/feed")
     public List<EventDto> getEvent(@PathVariable long id) {
-        log.debug("Получение новостной ленты пользователя - [{}]", id);
+        log.debug("Получение ленты событий пользователя - [{}]", id);
         return userService.getUserEvent(id);
     }
 }
