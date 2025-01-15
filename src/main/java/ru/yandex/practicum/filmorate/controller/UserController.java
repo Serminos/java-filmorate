@@ -6,8 +6,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import ru.yandex.practicum.filmorate.dto.EventDto;
 import ru.yandex.practicum.filmorate.dto.UserDto;
-import ru.yandex.practicum.filmorate.model.Event;
 import ru.yandex.practicum.filmorate.service.UserService;
 
 import java.util.List;
@@ -65,10 +65,8 @@ public class UserController {
     }
 
     @GetMapping("/{id}/feed")
-    // новостная лента
-    public List<Event> getEvent(@PathVariable int id) {
-        List<Event> feeds = userService.getUserEvent(id);
+    public List<EventDto> getEvent(@PathVariable long id) {
         log.debug("Получение новостной ленты пользователя - [{}]", id);
-        return feeds;
+        return userService.getUserEvent(id);
     }
 }

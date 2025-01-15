@@ -3,7 +3,10 @@ package ru.yandex.practicum.filmorate.service;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
+import ru.yandex.practicum.filmorate.dto.EventDto;
 import ru.yandex.practicum.filmorate.dto.UserDto;
+import ru.yandex.practicum.filmorate.enums.EventType;
+import ru.yandex.practicum.filmorate.enums.Operation;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Event;
 import ru.yandex.practicum.filmorate.model.Friendship;
@@ -12,9 +15,11 @@ import ru.yandex.practicum.filmorate.service.mapper.UserMapper;
 import ru.yandex.practicum.filmorate.storage.EventStorage;
 import ru.yandex.practicum.filmorate.storage.FriendshipStorage;
 import ru.yandex.practicum.filmorate.storage.UserStorage;
+import ru.yandex.practicum.filmorate.service.mapper.EventMapper;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class UserService {
@@ -24,7 +29,8 @@ public class UserService {
 
     @Autowired
     public UserService(@Qualifier("userDbStorage") UserStorage userStorage,
-                       @Qualifier("friendshipDbStorage") FriendshipStorage friendshipStorage, EventStorage eventStorage) {
+                       @Qualifier("friendshipDbStorage") FriendshipStorage friendshipStorage,
+                       @Qualifier("eventDbStorage") EventStorage eventStorage) {
         this.userStorage = userStorage;
         this.friendshipStorage = friendshipStorage;
         this.eventStorage = eventStorage;
@@ -66,7 +72,7 @@ public class UserService {
         checkUserExists(friendId);
         Friendship friendship = new Friendship(userId, friendId, false);
         friendshipStorage.add(friendship);
-        eventStorage.createEvent(userId, "FRIEND", "ADD", friendId);
+        eventStorage.create(userId, EventType.FRIEND, Operation.ADD, friendId);
     }
 
     public void deleteFriend(long userId, long friendId) {
@@ -77,7 +83,7 @@ public class UserService {
         checkUserExists(friendId);
         Friendship friendship = new Friendship(userId, friendId, false);
         friendshipStorage.remove(friendship);
-        eventStorage.createEvent(userId, "FRIEND", "REMOVE", friendId);
+        eventStorage.create(userId, EventType.FRIEND, Operation.REMOVE, friendId);
     }
 
     public List<UserDto> commonFriends(long userId, long friendId) {
@@ -100,8 +106,11 @@ public class UserService {
         return friends;
     }
 
-    public List<Event> getUserEvent(Integer userId) {
-        userStorage.findById(userId);
-        return userStorage.getUserEvent(userId);
+    public List<EventDto> getUserEvent(long userId) {
+        checkUserExists(userId);
+        List<Event> events = eventStorage.getUserEvents(userId);
+        return events.stream()
+                .map(EventMapper::mapToEventDto)
+                .collect(Collectors.toList());
     }
 }

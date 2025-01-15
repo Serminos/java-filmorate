@@ -4,6 +4,8 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.dto.FilmDto;
 import ru.yandex.practicum.filmorate.dto.GenreDto;
+import ru.yandex.practicum.filmorate.enums.EventType;
+import ru.yandex.practicum.filmorate.enums.Operation;
 import ru.yandex.practicum.filmorate.exception.BadRequestException;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Film;
@@ -33,7 +35,7 @@ public class FilmService {
                        @Qualifier("userDbStorage") UserStorage userStorage,
                        @Qualifier("filmGenreDbStorage") FilmGenreStorage filmGenreStorage,
                        @Qualifier("filmUserLikeDbStorage") FilmUserLikeStorage filmUserLikeStorage,
-                       EventStorage eventStorage,
+                       @Qualifier("eventDbStorage") EventStorage eventStorage,
                        @Qualifier("genreDbStorage") GenreStorage genreStorage,
                        @Qualifier("ratingMpaDbStorage") RatingMpaStorage ratingMpaStorage) {
         this.filmStorage = filmStorage;
@@ -137,14 +139,14 @@ public class FilmService {
         checkFilmExists(filmId);
         checkUserExists(userId);
         filmUserLikeStorage.add(filmId, userId);
-        eventStorage.createEvent(userId, "LIKE", "ADD", filmId);
+        eventStorage.create(userId, EventType.LIKE, Operation.ADD, filmId);
     }
 
     public void deleteLike(long filmId, long userId) {
         checkFilmExists(filmId);
         checkUserExists(userId);
         filmUserLikeStorage.remove(filmId, userId);
-        eventStorage.createEvent(userId, "LIKE", "REMOVE", filmId);
+        eventStorage.create(userId, EventType.LIKE, Operation.REMOVE, filmId);
     }
 
     public void clear() {

@@ -4,6 +4,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.dto.ReviewDto;
+import ru.yandex.practicum.filmorate.enums.EventType;
+import ru.yandex.practicum.filmorate.enums.Operation;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Review;
 import ru.yandex.practicum.filmorate.model.ReviewLike;
@@ -29,7 +31,8 @@ public class ReviewService {
     public ReviewService(@Qualifier("userDbStorage") UserStorage userStorage,
                          FilmService filmService,
                          @Qualifier("reviewDbStorage") ReviewStorage reviewStorage,
-                         @Qualifier("reviewLikeDbStorage") ReviewLikeStorage reviewLikeStorage, EventStorage eventStorage) {
+                         @Qualifier("reviewLikeDbStorage") ReviewLikeStorage reviewLikeStorage,
+                         @Qualifier("eventDbStorage") EventStorage eventStorage) {
         this.userStorage = userStorage;
         this.filmService = filmService;
         this.reviewStorage = reviewStorage;
@@ -41,7 +44,7 @@ public class ReviewService {
         checkReview(reviewDto);
         reviewDto.setUseful(0);
         Review review = reviewStorage.create(ReviewMapper.mapToReview(reviewDto));
-        eventStorage.createEvent(reviewDto.getUserId(), "REVIEW", "ADD", review.getId());
+        eventStorage.create(reviewDto.getUserId(), EventType.REVIEW, Operation.ADD, review.getId());
         return ReviewMapper.mapToReviewDto(review);
     }
 
@@ -65,7 +68,7 @@ public class ReviewService {
         Review review = ReviewMapper.mapToReview(reviewDto);
         review.setUseful(calculateUsefulByReviewId(review.getId()));
         reviewStorage.update(review);
-        eventStorage.createEvent(review.getUserId(), "REVIEW", "UPDATE", review.getId());
+        eventStorage.create(review.getUserId(), EventType.REVIEW, Operation.UPDATE, review.getId());
         return ReviewMapper.mapToReviewDto(review);
     }
 
@@ -81,7 +84,7 @@ public class ReviewService {
             throw new NotFoundException("Отзыв не найден.");
         }
         reviewStorage.deleteReview(reviewId);
-        eventStorage.createEvent(review.getUserId(), "REVIEW", "REMOVE", reviewId);
+        eventStorage.create(review.getUserId(), EventType.REVIEW, Operation.REMOVE, reviewId);
     }
 
     public void addLike(long reviewId, long userId) {

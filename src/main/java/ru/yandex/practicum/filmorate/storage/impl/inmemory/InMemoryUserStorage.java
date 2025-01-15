@@ -72,11 +72,6 @@ public class InMemoryUserStorage implements UserStorage {
         users.remove(id);
     }
 
-    @Override
-    public List<Event> getUserEvent(Integer id) {
-        return null;
-    }
-
     public void clear() {
         users.clear();
     }

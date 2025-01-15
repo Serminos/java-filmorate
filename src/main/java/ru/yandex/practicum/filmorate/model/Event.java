@@ -1,22 +1,21 @@
 package ru.yandex.practicum.filmorate.model;
 
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
-import lombok.NonNull;
+import lombok.NoArgsConstructor;
+import ru.yandex.practicum.filmorate.enums.EventType;
+import ru.yandex.practicum.filmorate.enums.Operation;
 
 @Data
 @Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class Event {
-
-    @NonNull
     private Long eventId;
-    @NonNull
     private Long userId;
-    @NonNull
     private Long timestamp;
-    private String eventType; // одно из значений LIKE, REVIEW или FRIEND
-    private String operation; // одно из значениий REMOVE, ADD, UPDATE
-    @NonNull
+    private EventType eventType;
+    private Operation operation;
     private Long entityId;
-
 }
