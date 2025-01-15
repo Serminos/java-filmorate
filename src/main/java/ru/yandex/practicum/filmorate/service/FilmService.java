@@ -2,14 +2,13 @@ package ru.yandex.practicum.filmorate.service;
 
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
+import ru.yandex.practicum.filmorate.dto.DirectorDto;
 import ru.yandex.practicum.filmorate.dto.FilmDto;
 import ru.yandex.practicum.filmorate.dto.GenreDto;
 import ru.yandex.practicum.filmorate.exception.BadRequestException;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
-import ru.yandex.practicum.filmorate.model.Film;
-import ru.yandex.practicum.filmorate.model.FilmUserLike;
-import ru.yandex.practicum.filmorate.model.Genre;
-import ru.yandex.practicum.filmorate.model.RatingMpa;
+import ru.yandex.practicum.filmorate.model.*;
+import ru.yandex.practicum.filmorate.service.mapper.DirectorMapper;
 import ru.yandex.practicum.filmorate.service.mapper.FilmMapper;
 import ru.yandex.practicum.filmorate.service.mapper.RatingMpaMapper;
 import ru.yandex.practicum.filmorate.storage.*;
@@ -27,13 +26,17 @@ public class FilmService {
     private final FilmUserLikeStorage filmUserLikeStorage;
     private final Map<Long, RatingMpa> cacheRatingMpa;
     private final Map<Long, Genre> cacheGenre;
+    private final DirectorStorage directorStorage;
+    private final FilmDirectorStorage filmDirectorStorage;
 
     public FilmService(@Qualifier("filmDbStorage") FilmStorage filmStorage,
                        @Qualifier("userDbStorage") UserStorage userStorage,
                        @Qualifier("filmGenreDbStorage") FilmGenreStorage filmGenreStorage,
                        @Qualifier("filmUserLikeDbStorage") FilmUserLikeStorage filmUserLikeStorage,
                        @Qualifier("genreDbStorage") GenreStorage genreStorage,
-                       @Qualifier("ratingMpaDbStorage") RatingMpaStorage ratingMpaStorage) {
+                       @Qualifier("ratingMpaDbStorage") RatingMpaStorage ratingMpaStorage,
+                       @Qualifier("directorDbStorage") DirectorStorage directorStorage,
+                       @Qualifier("filmDirectorDbStorage") FilmDirectorStorage filmDirectorStorage) {
         this.filmStorage = filmStorage;
         this.userStorage = userStorage;
         this.filmGenreStorage = filmGenreStorage;
@@ -42,6 +45,8 @@ public class FilmService {
                 .collect(Collectors.toMap(RatingMpa::getRatingMpaId, Function.identity()));
         this.cacheGenre = genreStorage.all().stream()
                 .collect(Collectors.toMap(Genre::getGenreId, Function.identity()));
+        this.directorStorage = directorStorage;
+        this.filmDirectorStorage = filmDirectorStorage;
     }
 
     private void checkRatingMpaAndGenresFilmDto(FilmDto filmDto) {
@@ -62,33 +67,71 @@ public class FilmService {
         }
     }
 
+    private void checkDirectorsExist(FilmDto filmDto) {
+        Set<Integer> directorIdSet = filmDto.getDirectors().stream()
+                .map(DirectorDto::getId)
+                .collect(Collectors.toSet());
+
+        directorStorage.checkDirectorsExist(directorIdSet);
+    }
+
+    private Set<DirectorDto> getDirectorDtoByFilmId(long id) {
+        Set<Director> directors = directorStorage.getDirectorsByFilmId(id);
+        if (directors == null) {
+            return Collections.emptySet();
+        } else {
+            return directors.stream()
+                    .map(DirectorMapper::mapToDirectorDto)
+                    .collect(Collectors.toSet());
+        }
+    }
+
     public FilmDto create(FilmDto filmDto) {
         checkRatingMpaAndGenresFilmDto(filmDto);
+        if (filmDto.getDirectors() != null && !filmDto.getDirectors().isEmpty()) {
+            checkDirectorsExist(filmDto);
+        }
         Film film = FilmMapper.mapToFilm(filmDto);
         film = filmStorage.create(film);
 
         FilmDto filmDtoResponse = FilmMapper.mapToFilmDto(film);
         filmDtoResponse.setGenres(updateFilmGenre(film, filmDto.getGenres()));
+
         if (film.getRatingMpaId() != null) {
             RatingMpa ratingMpa = cacheRatingMpa.get(film.getRatingMpaId());
             filmDtoResponse.setMpa(RatingMpaMapper.mapToMpaDto(ratingMpa));
         }
+        if (filmDto.getDirectors() != null && !filmDto.getDirectors().isEmpty()) {
+            filmDirectorStorage.createConnectionFilmDirectors(film.getId(), filmDto.getDirectors());
+            filmDtoResponse.setDirectors(getDirectorDtoByFilmId(film.getId()));
+        }
+
         return filmDtoResponse;
     }
 
     public FilmDto update(FilmDto filmDto) {
         checkFilmExists(filmDto.getId());
         checkRatingMpaAndGenresFilmDto(filmDto);
+        if (filmDto.getDirectors() != null && !filmDto.getDirectors().isEmpty()) {
+            checkDirectorsExist(filmDto);
+        }
         Film film = FilmMapper.mapToFilm(filmDto);
         film = filmStorage.update(film);
-        FilmDto filmDtoResponse = FilmMapper.mapToFilmDto(film);
 
+        FilmDto filmDtoResponse = FilmMapper.mapToFilmDto(film);
         filmDtoResponse.setGenres(updateFilmGenre(film, filmDto.getGenres()));
+
         if (film.getRatingMpaId() != null) {
             RatingMpa ratingMpa = cacheRatingMpa.get(film.getRatingMpaId());
             filmDtoResponse.setMpa(RatingMpaMapper.mapToMpaDto(ratingMpa));
         }
-        return FilmMapper.mapToFilmDto(film);
+        if (filmDto.getDirectors() != null && !filmDto.getDirectors().isEmpty()) {
+            filmDirectorStorage.deleteConnectionFilmDirectorsByFilmId(film.getId());
+            filmDirectorStorage.createConnectionFilmDirectors(film.getId(), filmDto.getDirectors());
+            filmDtoResponse.setDirectors(getDirectorDtoByFilmId(film.getId()));
+        }
+
+        return filmDtoResponse;
     }
 
     private List<GenreDto> updateFilmGenre(Film film, List<GenreDto> genreDtos) {
@@ -113,8 +156,8 @@ public class FilmService {
     }
 
     public FilmDto getFilmById(long filmId) {
-        Film film = filmStorage.findById(filmId);
         checkFilmExists(filmId);
+        Film film = filmStorage.findById(filmId);
         return mapFilmsToFilmDtosAndAddDopInfo(Collections.singletonList(film)).get(0);
     }
 
@@ -169,6 +212,7 @@ public class FilmService {
             FilmDto filmDto = FilmMapper.mapToFilmDto(film);
             filmDto.setGenres(genreDtos);
             filmDto.setMpa(RatingMpaMapper.mapToMpaDto(ratingMpa));
+            filmDto.setDirectors(getDirectorDtoByFilmId(film.getId()));
             filmDtos.add(filmDto);
         }
         return filmDtos;
@@ -197,5 +241,11 @@ public class FilmService {
         List<Film> films = filmStorage.findByIds(userLikedFilmIds);
 
         return mapFilmsToFilmDtosAndAddDopInfo(films);
+    }
+
+    public List<FilmDto> getFilmsByDirector(int directorId, String sortBy) {
+        directorStorage.checkDirectorExistById(directorId);
+        List<Film> filmsByDirector = filmStorage.getFilmsByDirector(directorId, sortBy);
+        return mapFilmsToFilmDtosAndAddDopInfo(filmsByDirector);
     }
 }

@@ -35,6 +35,7 @@ public class FilmDto {
     Set<Long> userLikeIds = new HashSet<>();
     List<GenreDto> genres = new ArrayList<>();
     MpaDto mpa;
+    Set<DirectorDto> directors;
 
     public FilmDto(Long id, String name, String description, LocalDate releaseDate,
                    Long duration,List<GenreDto> genres, MpaDto mpa) {
