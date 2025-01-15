@@ -6,11 +6,14 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import ru.yandex.practicum.filmorate.dto.FilmDto;
 import ru.yandex.practicum.filmorate.dto.UserDto;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.service.UserService;
+import ru.yandex.practicum.filmorate.service.mapper.FilmMapper;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 
 @RestController
@@ -65,10 +68,13 @@ public class UserController {
     }
 
     @GetMapping("/{id}/recommendations")
-    public List<Film> getRecommendations(@PathVariable long id) {
+    public List<FilmDto> getRecommendations(@PathVariable long id) {
+        log.debug("Получен запрос на получение рекомендаций для пользователя [{}]", id);
         List<Film> recommendations = userService.getRecommendations(id);
-        log.debug("Recommendations for user {}: {}", id, recommendations);
-        return recommendations;
+        List<FilmDto> recommendationDtos = recommendations.stream()
+                .map(FilmMapper::mapToFilmDto)
+                .collect(Collectors.toList());
+        log.debug("Сформированы рекомендации для пользователя [{}]: {}", id, recommendationDtos);
+        return recommendationDtos;
     }
-
 }

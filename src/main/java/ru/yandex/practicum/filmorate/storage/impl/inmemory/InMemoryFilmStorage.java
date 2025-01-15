@@ -68,19 +68,6 @@ public class InMemoryFilmStorage implements FilmStorage {
         films.clear();
     }
 
-    @Override
-    public List<Film> findFilmsLikedByUser(long userId) {
-        return filmLikes.entrySet().stream()
-                .filter(entry -> entry.getValue().contains(userId))
-                .map(entry -> films.get(entry.getKey()))
-                .toList();
-    }
-
-    @Override
-    public int countLikes(long filmId) {
-        return filmLikes.getOrDefault(filmId, List.of()).size();
-    }
-
     public List<Film> findByIds(List<Long> ids) {
         if (ids.isEmpty()) {
             return List.of();

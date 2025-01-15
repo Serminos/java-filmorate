@@ -105,28 +105,46 @@ public class UserService {
         return friends;
     }
 
+
     public List<Film> getRecommendations(long userId) {
         log.info("Fetching recommendations for userId={}", userId);
         checkUserExists(userId);
 
+        Set<Long> currentUserLikes = getCurrentUserLikes(userId);
+        List<Long> otherUsers = getOtherUsers(userId);
+        Long mostSimilarUserId = findMostSimilarUser(currentUserLikes, otherUsers);
+
+        if (mostSimilarUserId == null) {
+            return List.of();
+        }
+
+        Set<Long> recommendedFilmIds = getRecommendedFilmIds(currentUserLikes, mostSimilarUserId);
+
+        return mapToFilms(recommendedFilmIds);
+    }
+
+    private Set<Long> getCurrentUserLikes(long userId) {
         Set<Long> currentUserLikes = filmUserLikeStorage.findUserLikedFilmIds(userId);
         log.debug("User [{}] likes: {}", userId, currentUserLikes);
+        return currentUserLikes;
+    }
 
+    private List<Long> getOtherUsers(long userId) {
         List<Long> otherUsers = userStorage.all().stream()
                 .map(User::getId)
                 .filter(id -> id != userId)
                 .toList();
         log.debug("Other users: {}", otherUsers);
+        return otherUsers;
+    }
 
+    private Long findMostSimilarUser(Set<Long> currentUserLikes, List<Long> otherUsers) {
         Long mostSimilarUserId = null;
         int maxCommonLikes = 0;
 
         for (Long otherUserId : otherUsers) {
             Set<Long> otherUserLikes = filmUserLikeStorage.findUserLikedFilmIds(otherUserId);
-            int commonLikes = (int) currentUserLikes.stream()
-                    .filter(otherUserLikes::contains)
-                    .count();
-            log.debug("Common likes with user [{}]: {}", otherUserId, commonLikes);
+            int commonLikes = calculateCommonLikes(currentUserLikes, otherUserLikes);
 
             if (commonLikes > maxCommonLikes) {
                 maxCommonLikes = commonLikes;
@@ -135,17 +153,26 @@ public class UserService {
         }
 
         log.debug("Most similar user: {}", mostSimilarUserId);
+        return mostSimilarUserId;
+    }
 
-        if (mostSimilarUserId == null) {
-            return List.of();
-        }
+    private int calculateCommonLikes(Set<Long> currentUserLikes, Set<Long> otherUserLikes) {
+        int commonLikes = (int) currentUserLikes.stream()
+                .filter(otherUserLikes::contains)
+                .count();
+        log.debug("Common likes: {}", commonLikes);
+        return commonLikes;
+    }
 
+    private Set<Long> getRecommendedFilmIds(Set<Long> currentUserLikes, Long mostSimilarUserId) {
         Set<Long> similarUserLikes = filmUserLikeStorage.findUserLikedFilmIds(mostSimilarUserId);
         Set<Long> recommendedFilmIds = new HashSet<>(similarUserLikes);
         recommendedFilmIds.removeAll(currentUserLikes);
-
         log.debug("Recommended films (IDs): {}", recommendedFilmIds);
+        return recommendedFilmIds;
+    }
 
+    private List<Film> mapToFilms(Set<Long> recommendedFilmIds) {
         return recommendedFilmIds.stream()
                 .map(filmStorage::findById)
                 .filter(Objects::nonNull)

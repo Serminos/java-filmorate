@@ -76,18 +76,7 @@ class FilmDbStorage implements FilmStorage {
     }
 
     @Override
-    public List<Film> findFilmsLikedByUser(long userId) {
-        String sql = "SELECT f.* FROM film f " +
-                "JOIN film_user_like ful ON f.film_id = ful.film_id " +
-                "WHERE ful.user_id = ?";
-        return jdbcTemplate.query(sql, filmRowMapper, userId);
+    public List<Film> findByIds(List<Long> ids) {
+        return null;
     }
-
-    @Override
-    public int countLikes(long filmId) {
-        String sql = "SELECT COUNT(user_id) FROM film_user_like WHERE film_id = ?";
-
-        return jdbcTemplate.queryForObject(sql, Integer.class, filmId);
-    }
-
 }

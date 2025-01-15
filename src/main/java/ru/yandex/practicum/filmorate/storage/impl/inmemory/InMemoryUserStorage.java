@@ -9,7 +9,6 @@ import ru.yandex.practicum.filmorate.storage.UserStorage;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.List;
 import java.util.stream.Collectors;
 
 @Component
@@ -66,19 +65,12 @@ public class InMemoryUserStorage implements UserStorage {
         return ++currentMaxId;
     }
 
-
+    @Override
     public void deleteUser(long id) {
         users.remove(id);
     }
 
     public void clear() {
         users.clear();
-    }
-
-    @Override
-    public List<User> findAllExcept(long userId) {
-        return users.values().stream()
-                .filter(user -> user.getId() != userId)
-                .toList();
     }
 }

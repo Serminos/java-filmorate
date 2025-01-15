@@ -46,16 +46,13 @@ public class FilmService {
     private void checkRatingMpaAndGenresFilmDto(FilmDto filmDto) {
         if (filmDto.getMpa() != null && filmDto.getMpa().getId() != null) {
             if (cacheRatingMpa.get(filmDto.getMpa().getId()) == null) {
-                throw new BadRequestException("РЈРєР°Р·Р°РЅРЅС‹Р№ ID-СЂРµР№С‚РёРЅРіР° MPA РЅРµ РЅР°Р№РґРµРЅ - " +
-                        "[{" + filmDto.getMpa().getId() + "}]");
+                throw new BadRequestException("Указанный ID рейтинга MPA не найден - [" + filmDto.getMpa().getId() + "]");
             }
-            cacheRatingMpa.get(filmDto.getMpa().getId());
         }
         if (filmDto.getGenres() != null) {
             for (GenreDto genreDto : filmDto.getGenres()) {
                 if (cacheGenre.get(genreDto.getId()) == null) {
-                    throw new BadRequestException("РЈРєР°Р·Р°РЅРЅС‹Р№ ID-Р¶Р°РЅСЂР° РЅРµ РЅР°Р№РґРµРЅ - " +
-                            "[{" + genreDto.getId() + "}]");
+                    throw new BadRequestException("Указанный ID жанра не найден - [" + genreDto.getId() + "]");
                 }
             }
         }
@@ -119,13 +116,13 @@ public class FilmService {
 
     private void checkFilmExists(long filmId) {
         if (filmStorage.findById(filmId) == null) {
-            throw new NotFoundException("Р¤РёР»СЊРј РЅРµ РЅР°Р№РґРµРЅ.");
+            throw new NotFoundException("Фильм не найден.");
         }
     }
 
     private void checkUserExists(long userId) {
         if (userStorage.findById(userId) == null) {
-            throw new NotFoundException("РџРѕР»СЊР·РѕРІР°С‚РµР»СЊ РЅРµ РЅР°Р№РґРµРЅ.");
+            throw new NotFoundException("Пользователь не найден.");
         }
     }
 
