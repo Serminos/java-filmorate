@@ -4,10 +4,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
-import ru.yandex.practicum.filmorate.dto.EventDto;
 import ru.yandex.practicum.filmorate.dto.UserDto;
-import ru.yandex.practicum.filmorate.enums.EventType;
-import ru.yandex.practicum.filmorate.enums.Operation;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Friendship;
@@ -15,19 +12,10 @@ import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.service.mapper.UserMapper;
 import ru.yandex.practicum.filmorate.storage.FilmStorage;
 import ru.yandex.practicum.filmorate.storage.FilmUserLikeStorage;
-import ru.yandex.practicum.filmorate.model.Event;
-import ru.yandex.practicum.filmorate.model.Friendship;
-import ru.yandex.practicum.filmorate.model.User;
-import ru.yandex.practicum.filmorate.service.mapper.UserMapper;
-import ru.yandex.practicum.filmorate.storage.EventStorage;
 import ru.yandex.practicum.filmorate.storage.FriendshipStorage;
 import ru.yandex.practicum.filmorate.storage.UserStorage;
-import ru.yandex.practicum.filmorate.service.mapper.EventMapper;
 
 import java.util.*;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -36,7 +24,6 @@ public class UserService {
     private final FriendshipStorage friendshipStorage;
     private final FilmStorage filmStorage;
     private final FilmUserLikeStorage filmUserLikeStorage;
-    private final EventStorage eventStorage;
 
     @Autowired
     public UserService(@Qualifier("userDbStorage") UserStorage userStorage,
@@ -47,10 +34,6 @@ public class UserService {
         this.friendshipStorage = friendshipStorage;
         this.filmStorage = filmStorage;
         this.filmUserLikeStorage = filmUserLikeStorage;
-                       @Qualifier("eventDbStorage") EventStorage eventStorage) {
-        this.userStorage = userStorage;
-        this.friendshipStorage = friendshipStorage;
-        this.eventStorage = eventStorage;
     }
 
 
@@ -90,7 +73,6 @@ public class UserService {
         checkUserExists(friendId);
         Friendship friendship = new Friendship(userId, friendId, false);
         friendshipStorage.add(friendship);
-        eventStorage.create(userId, EventType.FRIEND, Operation.ADD, friendId);
     }
 
     public void deleteFriend(long userId, long friendId) {
@@ -101,7 +83,6 @@ public class UserService {
         checkUserExists(friendId);
         Friendship friendship = new Friendship(userId, friendId, false);
         friendshipStorage.remove(friendship);
-        eventStorage.create(userId, EventType.FRIEND, Operation.REMOVE, friendId);
     }
 
     public List<UserDto> commonFriends(long userId, long friendId) {
@@ -196,13 +177,5 @@ public class UserService {
                 .map(filmStorage::findById)
                 .filter(Objects::nonNull)
                 .toList();
-    public List<EventDto> getUserEvent(long userId) {
-        checkUserExists(userId);
-        List<Event> events = eventStorage.getUserEvents(userId);
-        return events.stream()
-                .map(EventMapper::mapToEventDto)
-                .collect(Collectors.toList());
     }
 }
-
-
