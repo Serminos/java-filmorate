@@ -5,8 +5,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.*
 import ru.yandex.practicum.filmorate.dto.FilmDto;
+import ru.yandex.practicum.filmorate.dto.EventDto;
 import ru.yandex.practicum.filmorate.dto.UserDto;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.service.UserService;
@@ -76,5 +77,10 @@ public class UserController {
                 .collect(Collectors.toList());
         log.debug("Сформированы рекомендации для пользователя [{}]: {}", id, recommendationDtos);
         return recommendationDtos;
+      
+    @GetMapping("/{id}/feed")
+    public List<EventDto> getEvent(@PathVariable long id) {
+        log.debug("Получение ленты событий пользователя - [{}]", id);
+        return userService.getUserEvent(id);
     }
 }

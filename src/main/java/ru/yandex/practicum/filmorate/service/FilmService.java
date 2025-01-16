@@ -4,9 +4,12 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.dto.FilmDto;
 import ru.yandex.practicum.filmorate.dto.GenreDto;
+import ru.yandex.practicum.filmorate.enums.EventType;
+import ru.yandex.practicum.filmorate.enums.Operation;
 import ru.yandex.practicum.filmorate.exception.BadRequestException;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.model.FilmUserLike;
 import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.model.RatingMpa;
 import ru.yandex.practicum.filmorate.service.mapper.FilmMapper;
@@ -24,6 +27,7 @@ public class FilmService {
     private final UserStorage userStorage;
     private final FilmGenreStorage filmGenreStorage;
     private final FilmUserLikeStorage filmUserLikeStorage;
+    private final EventStorage eventStorage;
     private final Map<Long, RatingMpa> cacheRatingMpa;
     private final Map<Long, Genre> cacheGenre;
 
@@ -31,12 +35,14 @@ public class FilmService {
                        @Qualifier("userDbStorage") UserStorage userStorage,
                        @Qualifier("filmGenreDbStorage") FilmGenreStorage filmGenreStorage,
                        @Qualifier("filmUserLikeDbStorage") FilmUserLikeStorage filmUserLikeStorage,
+                       @Qualifier("eventDbStorage") EventStorage eventStorage,
                        @Qualifier("genreDbStorage") GenreStorage genreStorage,
                        @Qualifier("ratingMpaDbStorage") RatingMpaStorage ratingMpaStorage) {
         this.filmStorage = filmStorage;
         this.userStorage = userStorage;
         this.filmGenreStorage = filmGenreStorage;
         this.filmUserLikeStorage = filmUserLikeStorage;
+        this.eventStorage = eventStorage;
         this.cacheRatingMpa = ratingMpaStorage.all().stream()
                 .collect(Collectors.toMap(RatingMpa::getRatingMpaId, Function.identity()));
         this.cacheGenre = genreStorage.all().stream()
@@ -130,12 +136,14 @@ public class FilmService {
         checkFilmExists(filmId);
         checkUserExists(userId);
         filmUserLikeStorage.add(filmId, userId);
+        eventStorage.create(userId, EventType.LIKE, Operation.ADD, filmId);
     }
 
     public void deleteLike(long filmId, long userId) {
         checkFilmExists(filmId);
         checkUserExists(userId);
         filmUserLikeStorage.remove(filmId, userId);
+        eventStorage.create(userId, EventType.LIKE, Operation.REMOVE, filmId);
     }
 
     public void clear() {
@@ -168,5 +176,30 @@ public class FilmService {
             filmDtos.add(filmDto);
         }
         return filmDtos;
+    }
+
+    public List<FilmDto> getCommonFilms(long userId, long friendId) {
+        checkUserExists(userId);
+        checkUserExists(friendId);
+
+        List<Long> userLikedFilmIds = filmUserLikeStorage.findFilmLikeByUserId(userId)
+                .stream()
+                .map(FilmUserLike::getFilmId)
+                .collect(Collectors.toList());
+
+        List<Long> friendLikedFilmIds = filmUserLikeStorage.findFilmLikeByUserId(friendId)
+                .stream()
+                .map(FilmUserLike::getFilmId)
+                .collect(Collectors.toList());
+
+        userLikedFilmIds.retainAll(friendLikedFilmIds);
+
+        if (userLikedFilmIds.isEmpty()) {
+            return List.of();
+        }
+
+        List<Film> films = filmStorage.findByIds(userLikedFilmIds);
+
+        return mapFilmsToFilmDtosAndAddDopInfo(films);
     }
 }

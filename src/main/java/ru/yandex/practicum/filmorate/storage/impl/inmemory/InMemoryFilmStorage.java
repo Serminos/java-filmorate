@@ -72,6 +72,7 @@ public class InMemoryFilmStorage implements FilmStorage {
         if (ids.isEmpty()) {
             return List.of();
         }
+
         return ids.stream()
                 .map(films::get)
                 .filter(Objects::nonNull)

@@ -8,6 +8,7 @@ import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.UserStorage;
+import ru.yandex.practicum.filmorate.storage.impl.h2.mappers.EventRowMapper;
 import ru.yandex.practicum.filmorate.storage.impl.h2.mappers.UserRowMapper;
 
 import java.sql.Date;
@@ -21,6 +22,7 @@ import java.util.Objects;
 class UserDbStorage implements UserStorage {
     private final JdbcTemplate jdbcTemplate;
     private final UserRowMapper userRowMapper;
+    private final EventRowMapper eventRowMapper;
 
     @Override
     public User create(User user) {
