@@ -11,6 +11,7 @@ import java.util.*;
 @Qualifier("inMemoryFilmUserLikeStorage")
 public class InMemoryFilmUserLikeStorage implements FilmUserLikeStorage {
     private final HashMap<Long, Set<Long>> filmUserLike = new HashMap<>();
+    private final HashMap<Long, Set<Long>> userLikes = new HashMap<>();
 
     @Override
     public void add(long filmId, long userId) {
@@ -83,5 +84,10 @@ public class InMemoryFilmUserLikeStorage implements FilmUserLikeStorage {
             }
         }
         return filmUserLikeAll;
+    }
+
+    @Override
+    public Set<Long> findUserLikedFilmIds(long userId) {
+        return userLikes.getOrDefault(userId, Set.of());
     }
 }
