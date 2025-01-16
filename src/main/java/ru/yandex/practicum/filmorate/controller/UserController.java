@@ -78,7 +78,7 @@ public class UserController {
         log.debug("Сформированы рекомендации для пользователя [{}]: {}", id, recommendationDtos);
         return recommendationDtos;
     }
-      
+
     @GetMapping("/{id}/feed")
     public List<EventDto> getEvent(@PathVariable long id) {
         log.debug("Получение ленты событий пользователя - [{}]", id);
