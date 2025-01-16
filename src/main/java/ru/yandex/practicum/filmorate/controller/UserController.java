@@ -77,6 +77,7 @@ public class UserController {
                 .collect(Collectors.toList());
         log.debug("Сформированы рекомендации для пользователя [{}]: {}", id, recommendationDtos);
         return recommendationDtos;
+    }
       
     @GetMapping("/{id}/feed")
     public List<EventDto> getEvent(@PathVariable long id) {
