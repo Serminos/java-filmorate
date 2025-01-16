@@ -78,4 +78,9 @@ public class InMemoryFilmStorage implements FilmStorage {
                 .filter(Objects::nonNull)
                 .collect(Collectors.toList());
     }
+
+    @Override
+    public List<Film> findFilmsByDirector(int directorId, String sortBy) {
+        return List.of();
+    }
 }
