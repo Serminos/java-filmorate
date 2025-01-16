@@ -89,7 +89,7 @@ class FilmDbStorage implements FilmStorage {
     }
 
     @Override
-    public List<Film> findFilmsByDirector(int directorId, String sortBy) {
+    public List<Film> findFilmsByDirector(long directorId, String sortBy) {
 
         final String GET_FILMS_BY_DIRECTOR_SORT_BY_YEAR = """
                 SELECT
@@ -131,5 +131,76 @@ class FilmDbStorage implements FilmStorage {
         }
 
         return jdbcTemplate.query(query, new Object[]{directorId}, filmRowMapper);
+    }
+
+    @Override
+    public List<Film> findPopularFilmsByGenreAndYear(Long limit, Long genreId, Integer year) {
+
+        if (genreId == null && year == null) {
+            final String GET_POPULAR_FILMS = """
+                        SELECT f.film_id,
+                               f.name,
+                               f.description,
+                               f.release_date,
+                               f.duration,
+                               f.rating_mpa_id
+                        FROM film f
+                        LEFT JOIN film_user_like fl ON f.film_id = fl.film_id
+                        GROUP BY f.film_id, f.name, f.description, f.release_date, f.duration, f.rating_mpa_id
+                        ORDER BY COUNT(fl.user_id) DESC, f.name ASC
+                        LIMIT ?
+                    """;
+            return jdbcTemplate.query(GET_POPULAR_FILMS, new Object[]{limit}, filmRowMapper);
+        } else if (genreId != null && year == null) {
+            final String GET_POPULAR_FILMS_BY_GENRE = """
+                        SELECT f.film_id,
+                               f.name,
+                               f.description,
+                               f.release_date,
+                               f.duration,
+                               f.rating_mpa_id
+                        FROM film f
+                        JOIN film_genre fg ON f.film_id = fg.film_id
+                        LEFT JOIN film_user_like fl ON f.film_id = fl.film_id
+                        WHERE fg.genre_id = ?
+                        GROUP BY f.film_id, f.name, f.description, f.release_date, f.duration, f.rating_mpa_id
+                        ORDER BY COUNT(fl.user_id) DESC, f.name ASC
+                        LIMIT ?
+                    """;
+            return jdbcTemplate.query(GET_POPULAR_FILMS_BY_GENRE, new Object[]{genreId, limit}, filmRowMapper);
+        } else if (genreId == null) {
+            final String QUERY = """
+                        SELECT f.film_id,
+                               f.name,
+                               f.description,
+                               f.release_date,
+                               f.duration,
+                               f.rating_mpa_id
+                        FROM film f
+                        LEFT JOIN film_user_like fl ON f.film_id = fl.film_id
+                        WHERE EXTRACT(YEAR FROM CAST(f.release_date AS date)) = ?
+                        GROUP BY f.film_id, f.name, f.description, f.release_date, f.duration, f.rating_mpa_id
+                        ORDER BY COUNT(fl.user_id) DESC, f.name ASC
+                        LIMIT ?
+                    """;
+            return jdbcTemplate.query(QUERY, new Object[]{year, limit}, filmRowMapper);
+        } else {
+            final String GET_POPULAR_FILMS_BY_GENRE_AND_YEAR = """
+                        SELECT f.film_id,
+                               f.name,
+                               f.description,
+                               f.release_date,
+                               f.duration,
+                               f.rating_mpa_id
+                        FROM film f
+                        JOIN film_genre fg ON f.film_id = fg.film_id
+                        LEFT JOIN film_user_like fl ON f.film_id = fl.film_id
+                        WHERE fg.genre_id = ? AND EXTRACT(YEAR FROM CAST(f.release_date AS date)) = ?
+                        GROUP BY f.film_id, f.name, f.description, f.release_date, f.duration, f.rating_mpa_id
+                        ORDER BY COUNT(fl.user_id) DESC, f.name ASC
+                        LIMIT ?
+                    """;
+            return jdbcTemplate.query(GET_POPULAR_FILMS_BY_GENRE_AND_YEAR, new Object[]{genreId, year, limit}, filmRowMapper);
+        }
     }
 }

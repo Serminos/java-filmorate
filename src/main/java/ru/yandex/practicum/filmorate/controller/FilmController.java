@@ -58,9 +58,12 @@ public class FilmController {
     }
 
     @GetMapping("/popular")
-    public List<FilmDto> popularFilms(@RequestParam(value = "count", defaultValue = "10") long count) {
-        log.debug("Популярные фильмы - Топ - [{}]", count);
-        return filmService.findPopularFilms(count);
+    public List<FilmDto> getPopularFilmsByGenreAndYearWithLimit(@RequestParam(defaultValue = "10") Long count,
+                                                                @RequestParam(required = false) Long genreId,
+                                                                @RequestParam(required = false) Integer year) {
+        log.debug("Получен запрос на получение самых популярных фильмов в количестве = [{}], " +
+                "фильтрация по жанру с id [{}] и году [{}]", count, genreId, year);
+        return filmService.getPopularFilmsByGenreAndYearWithLimit(count, genreId, year);
     }
 
     @GetMapping("/common")
@@ -70,7 +73,7 @@ public class FilmController {
     }
 
     @GetMapping("/director/{directorId}")
-    public List<FilmDto> getFilmsByDirectorIdWithSort(@PathVariable int directorId, @RequestParam String sortBy) {
+    public List<FilmDto> getFilmsByDirectorIdWithSort(@PathVariable long directorId, @RequestParam String sortBy) {
         log.debug("Получен запрос на получение всех фильмов режиссера с directorId = [{}], сортировка по [{}]",
                 directorId, sortBy);
         return filmService.getFilmsByDirectorIdWithSort(directorId, sortBy);

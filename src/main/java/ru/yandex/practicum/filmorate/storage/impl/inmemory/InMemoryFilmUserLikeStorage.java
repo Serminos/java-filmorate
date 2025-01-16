@@ -46,17 +46,6 @@ public class InMemoryFilmUserLikeStorage implements FilmUserLikeStorage {
     }
 
     @Override
-    public List<Long> popularFilmIds(long limit) {
-        Map<Long, Integer> statistic = new HashMap<>();
-        filmUserLike.forEach((k, v) -> statistic.put(k, v.size()));
-        List<Long> top = statistic.entrySet().stream()
-                .sorted((film1, film2) -> Integer.compare(film2.getValue(), film1.getValue()))
-                .limit(limit)
-                .map(Map.Entry::getKey).toList();
-        return top;
-    }
-
-    @Override
     public List<FilmUserLike> findUserLikeByFilmId(long filmId) {
         List<FilmUserLike> filmUserLikeAll = new ArrayList<>();
         Set<Long> usersIds = filmUserLike.get(filmId);

@@ -15,6 +15,7 @@ import ru.yandex.practicum.filmorate.service.mapper.FilmMapper;
 import ru.yandex.practicum.filmorate.service.mapper.RatingMpaMapper;
 import ru.yandex.practicum.filmorate.storage.*;
 
+import java.time.LocalDate;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -197,12 +198,18 @@ public class FilmService {
         filmStorage.clear();
     }
 
-    public List<FilmDto> findPopularFilms(long count) {
-        List<Long> popularFilmsIds = filmUserLikeStorage.popularFilmIds(count);
-        List<Film> films = new ArrayList<>();
-        for (Long filmId : popularFilmsIds) {
-            films.add(filmStorage.findById(filmId));
+    public List<FilmDto> getPopularFilmsByGenreAndYearWithLimit(Long limit, Long genreId, Integer year) {
+        if (genreId != null && cacheGenre.get(genreId) == null) {
+            throw new BadRequestException("Указанный ID-жанра не найден - " +
+                    "[{" + genreId + "}]");
         }
+
+        if (year != null && (year < 1895 || year > LocalDate.now().getYear())) {
+            throw new BadRequestException("Год выпуска фильма должен быть не раньше 1895 и не позже " +
+                    LocalDate.now().getYear() + ".");
+        }
+
+        List<Film> films = filmStorage.findPopularFilmsByGenreAndYear(limit, genreId, year);
         return mapFilmsToFilmDtosAndAddDopInfo(films);
     }
 
@@ -250,7 +257,7 @@ public class FilmService {
         return mapFilmsToFilmDtosAndAddDopInfo(films);
     }
 
-    public List<FilmDto> getFilmsByDirectorIdWithSort(int directorId, String sortBy) {
+    public List<FilmDto> getFilmsByDirectorIdWithSort(long directorId, String sortBy) {
         Integer count = directorStorage.checkExistsById(directorId);
         if (count == null || count == 0) {
             throw new NotFoundException("Режиссер с id = " + directorId + " не найден");
