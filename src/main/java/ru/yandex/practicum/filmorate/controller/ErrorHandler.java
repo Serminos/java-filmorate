@@ -17,7 +17,7 @@ import java.util.Map;
 import java.util.Objects;
 
 @RestControllerAdvice(assignableTypes = {UserController.class, FilmController.class,
-        RatingMpaController.class, GenreController.class, ReviewController.class})
+        RatingMpaController.class, GenreController.class, ReviewController.class, DirectorController.class})
 public class ErrorHandler {
     private static final Logger log = LoggerFactory.getLogger(ErrorHandler.class);
 

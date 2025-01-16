@@ -6,8 +6,8 @@ import java.util.Set;
 
 public interface FilmDirectorStorage {
 
-        void createConnectionFilmDirectors(Long filmId, Set<DirectorDto> directors);
+        void create(Long id, Set<DirectorDto> directors);
 
-        void deleteConnectionFilmDirectorsByFilmId(Long filmId);
+        void deleteByFilmId(Long id);
 
 }

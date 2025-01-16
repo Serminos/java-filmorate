@@ -6,8 +6,8 @@ import lombok.Data;
 @Data
 public class DirectorDto {
 
-    private Integer id;
+    private Long id;
 
-    @NotBlank(message = "Название не может быть пустым")
+    @NotBlank(message = "Имя режиссера не может быть пустым")
     private String name;
 }

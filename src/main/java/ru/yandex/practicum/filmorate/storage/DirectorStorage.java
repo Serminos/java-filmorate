@@ -9,17 +9,17 @@ public interface DirectorStorage {
 
     List<Director> getAllDirectors();
 
-    Director getDirectorById(int id);
+    Director findDirectorById(long id);
 
     Director createDirector(Director director);
 
     Director updateDirector(Director newDirector);
 
-    void deleteDirectorById(int id);
+    Integer deleteDirectorById(long id);
 
     Set<Director> getDirectorsByFilmId(long id);
 
-    void checkDirectorsExist(Set<Integer> directorIdSet);
+    void checkExists(Set<Long> directorIdSet);
 
-    void checkDirectorExistById(int directorId);
+    Integer checkExistsById(long id);
 }

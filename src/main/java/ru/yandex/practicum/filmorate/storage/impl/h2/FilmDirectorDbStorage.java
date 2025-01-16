@@ -22,7 +22,7 @@ public class FilmDirectorDbStorage implements FilmDirectorStorage {
     private JdbcTemplate jdbcTemplate;
 
     @Override
-    public void createConnectionFilmDirectors(Long filmId, Set<DirectorDto> directors) {
+    public void create(Long id, Set<DirectorDto> directors) {
 
         final String INSERT_FILM_DIRECTOR = """
                 INSERT INTO film_director (film_id, director_id)
@@ -32,7 +32,7 @@ public class FilmDirectorDbStorage implements FilmDirectorStorage {
         List<Object[]> params = new ArrayList<>();
 
         for (DirectorDto director : directors) {
-            Object[] row = new Object[]{filmId, director.getId()};
+            Object[] row = new Object[]{id, director.getId()};
             params.add(row);
         }
 
@@ -41,20 +41,20 @@ public class FilmDirectorDbStorage implements FilmDirectorStorage {
         for (int count : updateCounts) {
             addedCount += count;
         }
-        log.info("Добавлено {} записей в таблицу film_director для фильма с id = {}", addedCount, filmId);
+        log.trace("Добавлено [{}] записей в таблицу film_director для фильма с id = [{}]", addedCount, id);
     }
 
     @Override
-    public void deleteConnectionFilmDirectorsByFilmId(Long filmId) {
+    public void deleteByFilmId(Long id) {
 
         final String DELETE_FILM_DIRECTOR = """
                 DELETE FROM film_director
                 WHERE film_id = ?;""";
-        int deletedCount = jdbcTemplate.update(DELETE_FILM_DIRECTOR, filmId);
+        int deletedCount = jdbcTemplate.update(DELETE_FILM_DIRECTOR, id);
         if (deletedCount > 0) {
-            log.info("Удалено {} записей из таблицы film_director для фильма с id = {}", deletedCount, filmId);
+            log.trace("Удалено [{}] записей из таблицы film_director для фильма с id = [{}]", deletedCount, id);
         } else {
-            log.warn("Не найдено записей для удаления в таблице film_director для фильма с id = {}", filmId);
+            log.trace("Не найдено записей для удаления в таблице film_director для фильма с id = [{}]", id);
         }
     }
 }

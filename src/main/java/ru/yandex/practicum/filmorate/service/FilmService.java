@@ -68,11 +68,11 @@ public class FilmService {
     }
 
     private void checkDirectorsExist(FilmDto filmDto) {
-        Set<Integer> directorIdSet = filmDto.getDirectors().stream()
+        Set<Long> directorIdSet = filmDto.getDirectors().stream()
                 .map(DirectorDto::getId)
                 .collect(Collectors.toSet());
 
-        directorStorage.checkDirectorsExist(directorIdSet);
+        directorStorage.checkExists(directorIdSet);
     }
 
     private Set<DirectorDto> getDirectorDtoByFilmId(long id) {
@@ -102,7 +102,7 @@ public class FilmService {
             filmDtoResponse.setMpa(RatingMpaMapper.mapToMpaDto(ratingMpa));
         }
         if (filmDto.getDirectors() != null && !filmDto.getDirectors().isEmpty()) {
-            filmDirectorStorage.createConnectionFilmDirectors(film.getId(), filmDto.getDirectors());
+            filmDirectorStorage.create(film.getId(), filmDto.getDirectors());
             filmDtoResponse.setDirectors(getDirectorDtoByFilmId(film.getId()));
         }
 
@@ -126,8 +126,8 @@ public class FilmService {
             filmDtoResponse.setMpa(RatingMpaMapper.mapToMpaDto(ratingMpa));
         }
         if (filmDto.getDirectors() != null && !filmDto.getDirectors().isEmpty()) {
-            filmDirectorStorage.deleteConnectionFilmDirectorsByFilmId(film.getId());
-            filmDirectorStorage.createConnectionFilmDirectors(film.getId(), filmDto.getDirectors());
+            filmDirectorStorage.deleteByFilmId(film.getId());
+            filmDirectorStorage.create(film.getId(), filmDto.getDirectors());
             filmDtoResponse.setDirectors(getDirectorDtoByFilmId(film.getId()));
         }
 
@@ -243,9 +243,13 @@ public class FilmService {
         return mapFilmsToFilmDtosAndAddDopInfo(films);
     }
 
-    public List<FilmDto> getFilmsByDirector(int directorId, String sortBy) {
-        directorStorage.checkDirectorExistById(directorId);
-        List<Film> filmsByDirector = filmStorage.getFilmsByDirector(directorId, sortBy);
+    public List<FilmDto> getFilmsByDirectorIdWithSort(int directorId, String sortBy) {
+        Integer count = directorStorage.checkExistsById(directorId);
+        if (count == null || count == 0) {
+            throw new NotFoundException("Режиссер с id = " + directorId + " не найден");
+        }
+
+        List<Film> filmsByDirector = filmStorage.findFilmsByDirector(directorId, sortBy);
         return mapFilmsToFilmDtosAndAddDopInfo(filmsByDirector);
     }
 }

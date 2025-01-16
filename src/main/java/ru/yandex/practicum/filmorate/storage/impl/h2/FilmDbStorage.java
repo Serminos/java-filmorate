@@ -89,7 +89,7 @@ class FilmDbStorage implements FilmStorage {
     }
 
     @Override
-    public List<Film> getFilmsByDirector(int directorId, String sortBy) {
+    public List<Film> findFilmsByDirector(int directorId, String sortBy) {
 
         final String GET_FILMS_BY_DIRECTOR_SORT_BY_YEAR = """
                 SELECT
