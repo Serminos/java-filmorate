@@ -42,7 +42,7 @@ public class DirectorController {
 
     @DeleteMapping("/{id}")
     public void deleteById(@PathVariable("id") long id) {
-        log.debug("Получен запрос на удаление режиссера с id: [{}]", id);
+        log.debug("Получен запрос на удаление режиссера по его id: [{}]", id);
         directorService.deleteById(id);
     }
 }
