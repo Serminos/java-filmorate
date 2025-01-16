@@ -179,5 +179,3 @@ public class UserService {
                 .toList();
     }
 }
-
-
