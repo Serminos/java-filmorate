@@ -46,16 +46,13 @@ public class FilmService {
     private void checkRatingMpaAndGenresFilmDto(FilmDto filmDto) {
         if (filmDto.getMpa() != null && filmDto.getMpa().getId() != null) {
             if (cacheRatingMpa.get(filmDto.getMpa().getId()) == null) {
-                throw new BadRequestException("Указанный ID-рейтинга MPA не найден - " +
-                        "[{" + filmDto.getMpa().getId() + "}]");
+                throw new BadRequestException("Указанный ID рейтинга MPA не найден - [" + filmDto.getMpa().getId() + "]");
             }
-            cacheRatingMpa.get(filmDto.getMpa().getId());
         }
         if (filmDto.getGenres() != null) {
             for (GenreDto genreDto : filmDto.getGenres()) {
                 if (cacheGenre.get(genreDto.getId()) == null) {
-                    throw new BadRequestException("Указанный ID-жанра не найден - " +
-                            "[{" + genreDto.getId() + "}]");
+                    throw new BadRequestException("Указанный ID жанра не найден - [" + genreDto.getId() + "]");
                 }
             }
         }
