@@ -5,6 +5,8 @@ import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.dto.DirectorDto;
 import ru.yandex.practicum.filmorate.dto.FilmDto;
 import ru.yandex.practicum.filmorate.dto.GenreDto;
+import ru.yandex.practicum.filmorate.enums.EventType;
+import ru.yandex.practicum.filmorate.enums.Operation;
 import ru.yandex.practicum.filmorate.exception.BadRequestException;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.*;
@@ -24,6 +26,7 @@ public class FilmService {
     private final UserStorage userStorage;
     private final FilmGenreStorage filmGenreStorage;
     private final FilmUserLikeStorage filmUserLikeStorage;
+    private final EventStorage eventStorage;
     private final Map<Long, RatingMpa> cacheRatingMpa;
     private final Map<Long, Genre> cacheGenre;
     private final DirectorStorage directorStorage;
@@ -33,6 +36,7 @@ public class FilmService {
                        @Qualifier("userDbStorage") UserStorage userStorage,
                        @Qualifier("filmGenreDbStorage") FilmGenreStorage filmGenreStorage,
                        @Qualifier("filmUserLikeDbStorage") FilmUserLikeStorage filmUserLikeStorage,
+                       @Qualifier("eventDbStorage") EventStorage eventStorage,
                        @Qualifier("genreDbStorage") GenreStorage genreStorage,
                        @Qualifier("ratingMpaDbStorage") RatingMpaStorage ratingMpaStorage,
                        @Qualifier("directorDbStorage") DirectorStorage directorStorage,
@@ -41,6 +45,7 @@ public class FilmService {
         this.userStorage = userStorage;
         this.filmGenreStorage = filmGenreStorage;
         this.filmUserLikeStorage = filmUserLikeStorage;
+        this.eventStorage = eventStorage;
         this.cacheRatingMpa = ratingMpaStorage.all().stream()
                 .collect(Collectors.toMap(RatingMpa::getRatingMpaId, Function.identity()));
         this.cacheGenre = genreStorage.all().stream()
@@ -177,12 +182,14 @@ public class FilmService {
         checkFilmExists(filmId);
         checkUserExists(userId);
         filmUserLikeStorage.add(filmId, userId);
+        eventStorage.create(userId, EventType.LIKE, Operation.ADD, filmId);
     }
 
     public void deleteLike(long filmId, long userId) {
         checkFilmExists(filmId);
         checkUserExists(userId);
         filmUserLikeStorage.remove(filmId, userId);
+        eventStorage.create(userId, EventType.LIKE, Operation.REMOVE, filmId);
     }
 
     public void clear() {
