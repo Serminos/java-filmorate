@@ -90,4 +90,14 @@ public class InMemoryFilmUserLikeStorage implements FilmUserLikeStorage {
     public Set<Long> findUserLikedFilmIds(long userId) {
         return userLikes.getOrDefault(userId, Set.of());
     }
+
+    @Override
+    public Set<Long> findUserLikedFilmIds(long userId) {
+        return null;
+    }
+
+    @Override
+    public Set<Long> findUserIdsIntersectByFilmsLikesWithUserByUserId(long userId, Set<Long> currentUserLikesFilmIds) {
+        return null;
+    }
 }
