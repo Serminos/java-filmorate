@@ -8,6 +8,8 @@ import ru.yandex.practicum.filmorate.model.FilmUserLike;
 import ru.yandex.practicum.filmorate.storage.FilmUserLikeStorage;
 import ru.yandex.practicum.filmorate.storage.impl.h2.mappers.FilmUserLikeRowMapper;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 @Repository
@@ -37,6 +39,41 @@ class FilmUserLikeDbStorage implements FilmUserLikeStorage {
     @Override
     public List<FilmUserLike> all() {
         return jdbcTemplate.query(" SELECT * FROM film_user_like ", filmUserLikeRowMapper);
+    }
+
+    @Override
+    public List<Long> popularFilmIds(long limit) {
+        String sql = " SELECT FILM_ID " +
+                " FROM FILM_USER_LIKE " +
+                " GROUP BY FILM_ID " +
+                " ORDER BY COUNT(USER_ID) DESC " +
+                " LIMIT ?;";
+        return jdbcTemplate.query(sql, (rs, rowNum) ->
+                rs.getLong("FILM_ID"), limit);
+    }
+
+    @Override
+    public List<Long> findPopularFilmsIdsFromList(List<Long> filmsIds, long limit) {
+        if (filmsIds.isEmpty()) {
+            return List.of();
+        }
+
+        String inSql = String.join(",", Collections.nCopies(filmsIds.size(), "?"));
+
+        final String FIND_POPULAR_FILMS_IDS_FROM_LIST =
+                   "SELECT fl.film_id " +
+                   "FROM film_user_like AS fl " +
+                   "WHERE fl.film_id IN (" + inSql + ") " +
+                   "GROUP BY fl.film_id " +
+                   "ORDER BY COUNT(fl.user_id) DESC " +
+                   "LIMIT ?;";
+
+        List<Object> params = new ArrayList<>(filmsIds);
+        params.add(limit);
+
+        return jdbcTemplate.query(FIND_POPULAR_FILMS_IDS_FROM_LIST,
+                (rs, rowNum) -> rs.getLong("film_id"),
+                params.toArray());
     }
 
     @Override

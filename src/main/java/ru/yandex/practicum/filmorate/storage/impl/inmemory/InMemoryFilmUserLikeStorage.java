@@ -46,6 +46,16 @@ public class InMemoryFilmUserLikeStorage implements FilmUserLikeStorage {
     }
 
     @Override
+    public List<Long> popularFilmIds(long limit) {
+        return List.of();
+    }
+
+    @Override
+    public List<Long> findPopularFilmsIdsFromList(List<Long> filmsIds, long limit) {
+        return List.of();
+    }
+
+    @Override
     public List<FilmUserLike> findUserLikeByFilmId(long filmId) {
         List<FilmUserLike> filmUserLikeAll = new ArrayList<>();
         Set<Long> usersIds = filmUserLike.get(filmId);

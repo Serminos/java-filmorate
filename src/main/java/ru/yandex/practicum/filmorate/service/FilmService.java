@@ -32,6 +32,7 @@ public class FilmService {
     private final Map<Long, Genre> cacheGenre;
     private final DirectorStorage directorStorage;
     private final FilmDirectorStorage filmDirectorStorage;
+    public static final Integer FILM_BIRTHDAY_YEAR = 1895;
 
     public FilmService(@Qualifier("filmDbStorage") FilmStorage filmStorage,
                        @Qualifier("userDbStorage") UserStorage userStorage,
@@ -198,18 +199,42 @@ public class FilmService {
         filmStorage.clear();
     }
 
-    public List<FilmDto> getPopularFilmsByGenreAndYearWithLimit(Long limit, Long genreId, Integer year) {
+    public List<FilmDto> getPopularFilmsByParams(Long limit, Long genreId, Integer year) {
         if (genreId != null && cacheGenre.get(genreId) == null) {
             throw new BadRequestException("Указанный ID-жанра не найден - " +
                     "[{" + genreId + "}]");
         }
 
-        if (year != null && (year < 1895 || year > LocalDate.now().getYear())) {
+        if (year != null && (year < FILM_BIRTHDAY_YEAR || year > LocalDate.now().getYear())) {
             throw new BadRequestException("Год выпуска фильма должен быть не раньше 1895 и не позже " +
                     LocalDate.now().getYear() + ".");
         }
 
-        List<Film> films = filmStorage.findPopularFilmsByGenreAndYear(limit, genreId, year);
+        List<Long> filmsIds = new ArrayList<>();
+
+        if (genreId != null) {
+            filmsIds = filmGenreStorage.findFilmsIdsByGenreId(genreId);
+        }
+
+        if (year != null) {
+            if (filmsIds.isEmpty()) {
+                filmsIds = filmStorage.findFilmsIdsByYear(year);
+            } else {
+                filmsIds.retainAll(filmStorage.findFilmsIdsByYear(year));
+            }
+        }
+
+        if (filmsIds.isEmpty()) {
+            filmsIds = filmUserLikeStorage.popularFilmIds(limit);
+        } else {
+            filmsIds = filmUserLikeStorage.findPopularFilmsIdsFromList(filmsIds, limit);
+        }
+
+        List<Film> films = new ArrayList<>();
+        for (Long filmId : filmsIds) {
+            films.add(filmStorage.findById(filmId));
+        }
+
         return mapFilmsToFilmDtosAndAddDopInfo(films);
     }
 

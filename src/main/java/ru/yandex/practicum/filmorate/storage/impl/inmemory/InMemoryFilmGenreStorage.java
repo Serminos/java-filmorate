@@ -73,6 +73,11 @@ public class InMemoryFilmGenreStorage implements FilmGenreStorage {
         return filmGenreById;
     }
 
+    @Override
+    public List<Long> findFilmsIdsByGenreId(Long id) {
+        return List.of();
+    }
+
     private long getNextId() {
         long currentMaxId = filmGenres.keySet()
                 .stream()

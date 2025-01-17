@@ -16,6 +16,8 @@ CREATE TABLE IF NOT EXISTS film (
 	CONSTRAINT film_rating_mpa_fk FOREIGN KEY (rating_mpa_id) REFERENCES rating_mpa(rating_mpa_id)
 );
 
+CREATE INDEX IF NOT EXISTS film_release_date_idx ON film(release_date);
+
 CREATE TABLE IF NOT EXISTS users (
 	user_id bigserial NOT NULL,
 	email varchar NOT NULL,
