@@ -8,11 +8,14 @@ import ru.yandex.practicum.filmorate.storage.FilmStorage;
 
 import java.util.HashMap;
 import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 @Component
 @Qualifier("InMemoryFilmStorage")
 public class InMemoryFilmStorage implements FilmStorage {
     private final HashMap<Long, Film> films = new HashMap<>();
+    private final HashMap<Long, List<Long>> filmLikes = new HashMap<>();
 
     public Film create(Film film) {
         film.setId(getNextId());
@@ -64,4 +67,18 @@ public class InMemoryFilmStorage implements FilmStorage {
     public void clear() {
         films.clear();
     }
+
+    public List<Film> findByIds(List<Long> ids) {
+        if (ids.isEmpty()) {
+            return List.of();
+        }
+
+        return ids.stream()
+                .map(films::get)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
+    }
 }
+
+
+

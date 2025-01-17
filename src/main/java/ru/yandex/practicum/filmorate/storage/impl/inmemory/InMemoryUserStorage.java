@@ -73,5 +73,4 @@ public class InMemoryUserStorage implements UserStorage {
     public void clear() {
         users.clear();
     }
-
 }
