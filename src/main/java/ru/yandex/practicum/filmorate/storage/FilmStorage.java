@@ -24,5 +24,6 @@ public interface FilmStorage {
     List<Film> findByNameContainingIgnoreCase(String query);
 
     List<Film> findPopularByFilmIdIn(List<Long> ids);
+
     List<Long> findFilmsIdsByYear(Integer year);
 }
