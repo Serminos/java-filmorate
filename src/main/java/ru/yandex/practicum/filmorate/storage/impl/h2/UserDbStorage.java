@@ -68,4 +68,5 @@ class UserDbStorage implements UserStorage {
     public void clear() {
         jdbcTemplate.update("DELETE FROM users");
     }
+
 }
