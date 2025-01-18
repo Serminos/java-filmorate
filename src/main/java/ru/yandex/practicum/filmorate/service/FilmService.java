@@ -283,7 +283,7 @@ public class FilmService {
         }
         return mapFilmsToFilmDtosAndAddDopInfo(filmStorage.findPopularByFilmIdIn(filmIds.stream().toList()));
     }
-  
+
     public List<FilmDto> getRecommendations(long userId) {
         checkUserExists(userId);
 
@@ -348,4 +348,5 @@ public class FilmService {
         recommendedFilmIds.removeAll(currentUserLikes);
         log.debug("Рекомендованные фильмы (IDs): {}", recommendedFilmIds);
         return recommendedFilmIds;
+    }
 }
