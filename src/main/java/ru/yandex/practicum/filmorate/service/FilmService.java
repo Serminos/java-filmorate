@@ -240,6 +240,7 @@ public class FilmService {
 
     private List<FilmDto> mapFilmsToFilmDtosAndAddDopInfo(List<Film> films) {
         List<FilmDto> filmDtos = new ArrayList<>();
+        if (films == null) return filmDtos;
         for (Film film : films) {
             RatingMpa ratingMpa = new RatingMpa();
             if (film.getRatingMpaId() != null) {
@@ -290,5 +291,26 @@ public class FilmService {
 
         List<Film> filmsByDirector = filmStorage.findFilmsByDirector(directorId, sortBy);
         return mapFilmsToFilmDtosAndAddDopInfo(filmsByDirector);
+    }
+
+    public List<FilmDto> getSearch(String query, List<String> by) {
+        Set<Long> filmIds = new HashSet<>();
+        if (by.contains("title")) {
+            List<Film> films = filmStorage.findByNameContainingIgnoreCase(query);
+            if (!films.isEmpty()) {
+                filmIds.addAll(films.stream().map(Film::getId).collect(Collectors.toSet()));
+            }
+        }
+        if (by.contains("director")) {
+            List<Director> directors = directorStorage.findByNameContainingIgnoreCase(query);
+            if (!directors.isEmpty()) {
+                List<Long> directorsIds = directors.stream().map(Director::getId).toList();
+                List<FilmDirector> filmDirector = filmDirectorStorage.findByDirectorIdIn(directorsIds.stream().toList());
+                if (!filmDirector.isEmpty()) {
+                    filmIds.addAll(filmDirector.stream().map(FilmDirector::getFilmId).toList());
+                }
+            }
+        }
+        return mapFilmsToFilmDtosAndAddDopInfo(filmStorage.findPopularByFilmIdIn(filmIds.stream().toList()));
     }
 }

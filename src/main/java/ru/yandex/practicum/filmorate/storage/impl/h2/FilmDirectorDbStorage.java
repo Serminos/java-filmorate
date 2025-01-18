@@ -6,11 +6,12 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 import ru.yandex.practicum.filmorate.dto.DirectorDto;
+import ru.yandex.practicum.filmorate.model.FilmDirector;
 import ru.yandex.practicum.filmorate.storage.FilmDirectorStorage;
+import ru.yandex.practicum.filmorate.storage.impl.h2.mappers.FilmDirectorRowMapper;
 
 import java.util.ArrayList;
 import java.util.List;
-
 import java.util.Set;
 
 @Slf4j
@@ -20,6 +21,7 @@ import java.util.Set;
 public class FilmDirectorDbStorage implements FilmDirectorStorage {
 
     private JdbcTemplate jdbcTemplate;
+    private FilmDirectorRowMapper filmDirectorRowMapper;
 
     @Override
     public void create(Long id, Set<DirectorDto> directors) {
@@ -56,5 +58,14 @@ public class FilmDirectorDbStorage implements FilmDirectorStorage {
         } else {
             log.trace("Не найдено записей для удаления в таблице film_director для фильма с id = [{}]", id);
         }
+    }
+
+    @Override
+    public List<FilmDirector> findByDirectorIdIn(List<Long> directorIds) {
+        if (directorIds.isEmpty()) {
+            return List.of();
+        }
+        return jdbcTemplate.query(" SELECT * FROM film_director WHERE director_id IN (?) ",
+                filmDirectorRowMapper, directorIds.toArray());
     }
 }

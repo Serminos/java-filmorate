@@ -22,4 +22,6 @@ public interface DirectorStorage {
     void checkExists(Set<Long> directorIdSet);
 
     Integer checkExistsById(long id);
+
+    List<Director> findByNameContainingIgnoreCase(String query);
 }
