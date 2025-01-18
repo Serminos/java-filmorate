@@ -132,4 +132,24 @@ class FilmDbStorage implements FilmStorage {
 
         return jdbcTemplate.query(query, new Object[]{directorId}, filmRowMapper);
     }
+
+    @Override
+    public void deleteFilm(long filmId) {
+        jdbcTemplate.update("DELETE FROM film_user_like WHERE film_id = ?", filmId);
+
+        jdbcTemplate.update("DELETE FROM film_genre WHERE film_id = ?", filmId);
+
+        jdbcTemplate.update("DELETE FROM film WHERE film_id = ?", filmId);
+    }
+
+    @Override
+    public List<Film> findPopular(long limit) {
+        String sql = " SELECT f.* " +
+                " FROM FILM f " +
+                " LEFT JOIN FILM_USER_LIKE AS ful ON f.film_id = ful.film_id " +
+                " GROUP BY f.film_id " +
+                " ORDER BY COUNT(ful.film_id) desc " +
+                " LIMIT ? ";
+        return jdbcTemplate.query(sql, filmRowMapper, limit);
+    }
 }

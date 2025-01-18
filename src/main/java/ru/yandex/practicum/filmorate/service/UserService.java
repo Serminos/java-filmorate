@@ -11,11 +11,12 @@ import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Event;
 import ru.yandex.practicum.filmorate.model.Friendship;
 import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.service.mapper.EventMapper;
 import ru.yandex.practicum.filmorate.service.mapper.UserMapper;
 import ru.yandex.practicum.filmorate.storage.EventStorage;
+import ru.yandex.practicum.filmorate.storage.FilmUserLikeStorage;
 import ru.yandex.practicum.filmorate.storage.FriendshipStorage;
 import ru.yandex.practicum.filmorate.storage.UserStorage;
-import ru.yandex.practicum.filmorate.service.mapper.EventMapper;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -26,14 +27,18 @@ public class UserService {
     private final UserStorage userStorage;
     private final FriendshipStorage friendshipStorage;
     private final EventStorage eventStorage;
+    private final FilmUserLikeStorage filmUserLikeStorage;
+
 
     @Autowired
     public UserService(@Qualifier("userDbStorage") UserStorage userStorage,
                        @Qualifier("friendshipDbStorage") FriendshipStorage friendshipStorage,
-                       @Qualifier("eventDbStorage") EventStorage eventStorage) {
+                       @Qualifier("eventDbStorage") EventStorage eventStorage,
+                       @Qualifier("filmUserLikeDbStorage") FilmUserLikeStorage filmUserLikeStorage) {
         this.userStorage = userStorage;
         this.friendshipStorage = friendshipStorage;
         this.eventStorage = eventStorage;
+        this.filmUserLikeStorage = filmUserLikeStorage;
     }
 
     public UserDto create(UserDto user) {
@@ -112,5 +117,17 @@ public class UserService {
         return events.stream()
                 .map(EventMapper::mapToEventDto)
                 .collect(Collectors.toList());
+    }
+
+    public void deleteUser(long userId) {
+        checkUserExists(userId);
+        friendshipStorage.removeAllByUserId(userId);
+        filmUserLikeStorage.removeAllLikesByUserId(userId);
+        userStorage.deleteUser(userId);
+    }
+
+    public UserDto getUserById(long userId) {
+        checkUserExists(userId);
+        return UserMapper.mapToUserDto(userStorage.findById(userId));
     }
 }

@@ -92,4 +92,10 @@ class FriendshipDbStorage implements FriendshipStorage {
                         " INNER JOIN (" + otherIdFriendship + ") user2 on user1.to_user_id = user2.to_user_id ",
                 Long.class, user1Id, user2Id);
     }
+
+    @Override
+    public void removeAllByUserId(long userId) {
+        String sql = "DELETE FROM friendship WHERE from_user_id = ? OR to_user_id = ?";
+        jdbcTemplate.update(sql, userId, userId);
+    }
 }

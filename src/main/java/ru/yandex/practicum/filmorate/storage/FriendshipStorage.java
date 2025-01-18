@@ -24,4 +24,6 @@ public interface FriendshipStorage {
     List<Friendship> findAllByToUserIdAndConfirmedStatus(long toUserId, boolean isConfirmed);
 
     List<Long> findCommonFriendId(long userId, long otherId);
+
+    void removeAllByUserId(long userId);
 }

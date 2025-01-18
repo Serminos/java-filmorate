@@ -13,9 +13,11 @@ public interface FilmUserLikeStorage {
 
     List<FilmUserLike> all();
 
-    List<Long> popularFilmIds(long limit);
-
     List<FilmUserLike> findUserLikeByFilmId(long filmId);
 
     List<FilmUserLike> findFilmLikeByUserId(long userId);
+
+    void removeAllLikesByUserId(long userId);
+
+    void removeAllLikesByFilmId(long filmId);
 }

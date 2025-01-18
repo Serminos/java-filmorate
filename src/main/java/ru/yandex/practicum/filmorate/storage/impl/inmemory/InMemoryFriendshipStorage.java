@@ -146,5 +146,8 @@ public class InMemoryFriendshipStorage implements FriendshipStorage {
         return coommonFriendId;
     }
 
+    @Override
+    public void removeAllByUserId(long userId) {
 
+    }
 }

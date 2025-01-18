@@ -40,17 +40,6 @@ class FilmUserLikeDbStorage implements FilmUserLikeStorage {
     }
 
     @Override
-    public List<Long> popularFilmIds(long limit) {
-        String sql = " SELECT FILM_ID " +
-                " FROM FILM_USER_LIKE " +
-                " GROUP BY FILM_ID " +
-                " ORDER BY COUNT(USER_ID) DESC " +
-                " LIMIT ? ";
-        return jdbcTemplate.query(sql, (rs, rowNum) ->
-                rs.getLong("FILM_ID"), limit);
-    }
-
-    @Override
     public List<FilmUserLike> findUserLikeByFilmId(long filmId) {
         return jdbcTemplate.query(" SELECT * FROM film_user_like WHERE film_id = ?",
                 filmUserLikeRowMapper, filmId);
@@ -60,5 +49,15 @@ class FilmUserLikeDbStorage implements FilmUserLikeStorage {
     public List<FilmUserLike> findFilmLikeByUserId(long userId) {
         return jdbcTemplate.query(" SELECT * FROM film_user_like WHERE user_id = ?",
                 filmUserLikeRowMapper, userId);
+    }
+
+    @Override
+    public void removeAllLikesByUserId(long userId) {
+        jdbcTemplate.update("DELETE FROM film_user_like WHERE user_id = ?", userId);
+    }
+
+    @Override
+    public void removeAllLikesByFilmId(long filmId) {
+        jdbcTemplate.update("DELETE FROM film_user_like WHERE film_id = ?", filmId);
     }
 }
