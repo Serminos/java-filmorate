@@ -6,12 +6,14 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
+import ru.yandex.practicum.filmorate.exception.BadRequestException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.storage.FilmStorage;
 import ru.yandex.practicum.filmorate.storage.impl.h2.mappers.FilmRowMapper;
 
 import java.sql.Date;
 import java.sql.PreparedStatement;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
@@ -77,6 +79,63 @@ class FilmDbStorage implements FilmStorage {
 
     @Override
     public List<Film> findByIds(List<Long> ids) {
+<<<<<<< HEAD
         return null;
     }
 }
+=======
+        if (ids.isEmpty()) {
+            return List.of();
+        }
+
+        String sql = "SELECT * FROM film WHERE film_id IN (" + String.join(",", Collections.nCopies(ids.size(), "?")) + ")";
+
+        return jdbcTemplate.query(sql, filmRowMapper, ids.toArray());
+    }
+
+    @Override
+    public List<Film> findFilmsByDirector(int directorId, String sortBy) {
+
+        final String GET_FILMS_BY_DIRECTOR_SORT_BY_YEAR = """
+                SELECT
+                        f.film_id,
+                        f.name,
+                        f.description,
+                        f.release_date,
+                        f.duration,
+                        f.rating_mpa_id
+                    FROM film f
+                    JOIN film_director fd ON f.film_id = fd.film_id
+                    WHERE fd.director_id = ?
+                    ORDER BY YEAR(f.release_date) ASC;
+                """;
+
+        final String GET_FILMS_BY_DIRECTOR_SORT_BY_LIKES = """
+                SELECT
+                        f.film_id,
+                        f.name,
+                        f.description,
+                        f.release_date,
+                        f.duration,
+                        f.rating_mpa_id
+                FROM film f
+                JOIN film_director fd ON f.film_id = fd.film_id
+                LEFT JOIN film_user_like fl ON f.film_id = fl.film_id
+                WHERE fd.director_id = ?
+                GROUP BY f.film_id, f.name, f.description, f.release_date, f.duration, f.rating_mpa_id
+                ORDER BY COUNT(fl.user_id) DESC;
+                """;
+
+        String query;
+        if ("year".equals(sortBy)) {
+            query = GET_FILMS_BY_DIRECTOR_SORT_BY_YEAR;
+        } else if ("likes".equals(sortBy)) {
+            query = GET_FILMS_BY_DIRECTOR_SORT_BY_LIKES;
+        } else {
+            throw new BadRequestException("Сортировка может быть только по двум параметрам: year или likes");
+        }
+
+        return jdbcTemplate.query(query, new Object[]{directorId}, filmRowMapper);
+    }
+}
+>>>>>>> 0e630ab4612c491009000b1fbb590c2e8a45baa4

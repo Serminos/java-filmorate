@@ -18,4 +18,9 @@ public interface FilmStorage {
     void clear();
 
     List<Film> findByIds(List<Long> ids);
+<<<<<<< HEAD
+=======
+
+    List<Film> findFilmsByDirector(int directorId, String sortBy);
+>>>>>>> 0e630ab4612c491009000b1fbb590c2e8a45baa4
 }

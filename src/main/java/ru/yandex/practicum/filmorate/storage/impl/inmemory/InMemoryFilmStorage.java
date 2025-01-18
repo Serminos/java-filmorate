@@ -68,6 +68,10 @@ public class InMemoryFilmStorage implements FilmStorage {
         films.clear();
     }
 
+<<<<<<< HEAD
+=======
+    @Override
+>>>>>>> 0e630ab4612c491009000b1fbb590c2e8a45baa4
     public List<Film> findByIds(List<Long> ids) {
         if (ids.isEmpty()) {
             return List.of();
@@ -78,6 +82,14 @@ public class InMemoryFilmStorage implements FilmStorage {
                 .filter(Objects::nonNull)
                 .collect(Collectors.toList());
     }
+<<<<<<< HEAD
+=======
+
+    @Override
+    public List<Film> findFilmsByDirector(int directorId, String sortBy) {
+        return List.of();
+    }
+>>>>>>> 0e630ab4612c491009000b1fbb590c2e8a45baa4
 }
 
 
