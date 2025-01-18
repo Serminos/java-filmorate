@@ -68,6 +68,12 @@ class FilmDbStorage implements FilmStorage {
     }
 
     @Override
+    public List<Film> findByNameContainingIgnoreCase(String query) {
+        return jdbcTemplate.query("SELECT * FROM film WHERE lower(name) like '%'||lower(?)||'%'",
+                filmRowMapper, query);
+    }
+
+    @Override
     public boolean deleteLikeByUserId(long filmId, long userId) {
         return false;
     }
@@ -131,5 +137,22 @@ class FilmDbStorage implements FilmStorage {
         }
 
         return jdbcTemplate.query(query, new Object[]{directorId}, filmRowMapper);
+    }
+
+    @Override
+    public List<Film> findPopularByFilmIdIn(List<Long> filmIds) {
+        if (filmIds.isEmpty()) {
+            return List.of();
+        }
+        String inSql = String.join(",", Collections.nCopies(filmIds.size(), "?"));
+
+        String sql = " SELECT f.* " +
+                " FROM FILM f " +
+                " LEFT JOIN FILM_USER_LIKE AS ful ON f.film_id = ful.film_id " +
+                " WHERE f.film_id IN (" + inSql + ") " +
+                " GROUP BY f.film_id " +
+                " ORDER BY COUNT(ful.film_id) desc ";
+
+        return jdbcTemplate.query(sql, filmRowMapper, filmIds.toArray());
     }
 }

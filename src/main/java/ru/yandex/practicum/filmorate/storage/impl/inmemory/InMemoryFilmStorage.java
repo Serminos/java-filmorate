@@ -83,4 +83,14 @@ public class InMemoryFilmStorage implements FilmStorage {
     public List<Film> findFilmsByDirector(int directorId, String sortBy) {
         return List.of();
     }
+
+    @Override
+    public List<Film> findByNameContainingIgnoreCase(String query) {
+        return null;
+    }
+
+    @Override
+    public List<Film> findPopularByFilmIdIn(List<Long> ids) {
+        return null;
+    }
 }

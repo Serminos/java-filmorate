@@ -20,4 +20,8 @@ public interface FilmStorage {
     List<Film> findByIds(List<Long> ids);
 
     List<Film> findFilmsByDirector(int directorId, String sortBy);
+
+    List<Film> findByNameContainingIgnoreCase(String query);
+
+    List<Film> findPopularByFilmIdIn(List<Long> ids);
 }

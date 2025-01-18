@@ -122,4 +122,12 @@ public class DirectorDbStorage implements DirectorStorage {
                 """;
         return jdbcTemplate.queryForObject(CHECK_DIRECTOR_EXISTS, Integer.class, id);
     }
+
+    @Override
+    public List<Director> findByNameContainingIgnoreCase(String query) {
+        return jdbcTemplate.query(" SELECT * " +
+                        " FROM DIRECTORS " +
+                        " WHERE lower(NAME) like '%'||lower(?)||'%' ",
+                directorRowMapper, query);
+    }
 }
