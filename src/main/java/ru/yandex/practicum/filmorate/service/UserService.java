@@ -11,11 +11,11 @@ import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Event;
 import ru.yandex.practicum.filmorate.model.Friendship;
 import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.service.mapper.EventMapper;
 import ru.yandex.practicum.filmorate.service.mapper.UserMapper;
 import ru.yandex.practicum.filmorate.storage.EventStorage;
 import ru.yandex.practicum.filmorate.storage.FriendshipStorage;
 import ru.yandex.practicum.filmorate.storage.UserStorage;
-import ru.yandex.practicum.filmorate.service.mapper.EventMapper;
 
 import java.util.ArrayList;
 import java.util.List;
