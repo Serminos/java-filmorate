@@ -137,8 +137,8 @@ class FilmDbStorage implements FilmStorage {
         }
 
         return jdbcTemplate.query(query, new Object[]{directorId}, filmRowMapper);
-    }  
-        
+    }
+
     @Override
     public List<Film> findPopularByFilmIdIn(List<Long> filmIds) {
         if (filmIds.isEmpty()) {
