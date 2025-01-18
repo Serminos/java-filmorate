@@ -1,5 +1,6 @@
 package ru.yandex.practicum.filmorate.service;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.dto.DirectorDto;
@@ -20,6 +21,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Service
+@Slf4j
 public class FilmService {
 
     private final FilmStorage filmStorage;
@@ -258,5 +260,72 @@ public class FilmService {
 
         List<Film> filmsByDirector = filmStorage.findFilmsByDirector(directorId, sortBy);
         return mapFilmsToFilmDtosAndAddDopInfo(filmsByDirector);
+    }
+
+
+    public List<FilmDto> getRecommendations(long userId) {
+        checkUserExists(userId);
+
+        Set<Long> currentUserLikesFilmIds = getCurrentUserLikes(userId);
+        List<Long> otherUsers = getIntersectFilmsWithOtherUsersLikesIds(userId, currentUserLikesFilmIds);
+        Long mostSimilarUserId = findMostSimilarUser(currentUserLikesFilmIds, otherUsers);
+
+        if (mostSimilarUserId == null) {
+            return List.of();
+        }
+
+        Set<Long> recommendedFilmIds = getRecommendedFilmIds(currentUserLikesFilmIds, mostSimilarUserId);
+        return filmStorage.findByIds(recommendedFilmIds.stream().toList()).stream()
+                .map(FilmMapper::mapToFilmDto)
+                .collect(Collectors.toList());
+    }
+
+    private Set<Long> getCurrentUserLikes(long userId) {
+        Set<Long> currentUserLikes = filmUserLikeStorage.findUserLikedFilmIds(userId);
+        log.debug("Пользователь с ID [{}] лайкал фильмы с ID: {}", userId, currentUserLikes);
+        return currentUserLikes;
+    }
+
+    private List<Long> getIntersectFilmsWithOtherUsersLikesIds(long userId, Set<Long> currentUserLikesFilmIds) {
+        List<Long> otherUserIds = filmUserLikeStorage
+                .findUserIdsIntersectByFilmsLikesWithUserByUserId(userId, currentUserLikesFilmIds)
+                .stream()
+                .toList();
+        log.debug("ID-других пользователей: {}", otherUserIds);
+        return otherUserIds;
+    }
+
+    private Long findMostSimilarUser(Set<Long> currentUserLikes, List<Long> otherUsers) {
+        Long mostSimilarUserId = null;
+        long maxCommonLikes = 0L;
+
+        for (Long otherUserId : otherUsers) {
+            Set<Long> otherUserLikes = filmUserLikeStorage.findUserLikedFilmIds(otherUserId);
+            Long commonLikes = calculateCommonLikes(currentUserLikes, otherUserLikes);
+
+            if (commonLikes > maxCommonLikes) {
+                maxCommonLikes = commonLikes;
+                mostSimilarUserId = otherUserId;
+            }
+        }
+
+        log.debug("Id-пользователя наиболее похожего по лайкам : [{}]", mostSimilarUserId);
+        return mostSimilarUserId;
+    }
+
+    private Long calculateCommonLikes(Set<Long> currentUserLikes, Set<Long> otherUserLikes) {
+        Long commonLikes = currentUserLikes.stream()
+                .filter(otherUserLikes::contains)
+                .count();
+        log.debug("Общие лайки: {}", commonLikes);
+        return commonLikes;
+    }
+
+    private Set<Long> getRecommendedFilmIds(Set<Long> currentUserLikes, Long mostSimilarUserId) {
+        Set<Long> similarUserLikes = filmUserLikeStorage.findUserLikedFilmIds(mostSimilarUserId);
+        Set<Long> recommendedFilmIds = new HashSet<>(similarUserLikes);
+        recommendedFilmIds.removeAll(currentUserLikes);
+        log.debug("Рекомендованные фильмы (IDs): {}", recommendedFilmIds);
+        return recommendedFilmIds;
     }
 }
