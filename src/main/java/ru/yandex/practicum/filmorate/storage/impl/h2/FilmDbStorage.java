@@ -158,12 +158,20 @@ class FilmDbStorage implements FilmStorage {
 
     @Override
     public void deleteFilm(long filmId) {
-        jdbcTemplate.update("DELETE FROM film_user_like WHERE film_id = ?", filmId);
-
-        jdbcTemplate.update("DELETE FROM film_genre WHERE film_id = ?", filmId);
-
-        jdbcTemplate.update("DELETE FROM film WHERE film_id = ?", filmId);
+        String sql = """
+                    DELETE FROM film_user_like WHERE film_id = ?;
+                    DELETE FROM film_genre WHERE film_id = ?;
+                    DELETE FROM film WHERE film_id = ?;
+                """;
+        jdbcTemplate.update(connection -> {
+            PreparedStatement ps = connection.prepareStatement(sql);
+            ps.setLong(1, filmId);
+            ps.setLong(2, filmId);
+            ps.setLong(3, filmId);
+            return ps;
+        });
     }
+
 
     @Override
     public List<Film> findPopular(long limit) {
