@@ -78,7 +78,7 @@ public class UserController {
     public List<FilmDto> getFilmRecommendations(@PathVariable long id) {
         log.debug("Получен запрос на получение рекомендованных для пользователя [{}] фильмов", id);
         List<FilmDto> recommendationDtos = filmService.getRecommendations(id);
-        log.debug("Список рекомендованных фильмов для пользователя [{}]: {}", id, recommendationDtos);
+        log.debug("Количество рекомендованных фильмов для пользователя [{}]: {}", id, recommendationDtos.size());
         return recommendationDtos;
     }
 }
