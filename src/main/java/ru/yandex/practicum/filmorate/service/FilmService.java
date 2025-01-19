@@ -200,11 +200,7 @@ public class FilmService {
     }
 
     public List<FilmDto> findPopularFilms(long count) {
-        List<Long> popularFilmsIds = filmUserLikeStorage.popularFilmIds(count);
-        List<Film> films = new ArrayList<>();
-        for (Long filmId : popularFilmsIds) {
-            films.add(filmStorage.findById(filmId));
-        }
+        List<Film> films = filmStorage.findPopular(count);
         return mapFilmsToFilmDtosAndAddDopInfo(films);
     }
 
@@ -348,5 +344,11 @@ public class FilmService {
         recommendedFilmIds.removeAll(currentUserLikes);
         log.debug("Рекомендованные фильмы (IDs): {}", recommendedFilmIds);
         return recommendedFilmIds;
+    }
+  
+    public void deleteFilm(long filmId) {
+        filmUserLikeStorage.removeAllLikesByFilmId(filmId);
+        filmGenreStorage.removeGenreByFilmId(filmId);
+        filmStorage.deleteFilm(filmId);
     }
 }

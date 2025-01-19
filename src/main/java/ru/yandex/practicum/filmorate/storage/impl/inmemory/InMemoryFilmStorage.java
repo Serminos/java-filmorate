@@ -68,6 +68,16 @@ public class InMemoryFilmStorage implements FilmStorage {
     }
 
     @Override
+    public void deleteFilm(long filmId) {
+
+    }
+
+    @Override
+    public List<Film> findPopular(long limit) {
+        return null;
+    }
+
+    @Override
     public List<Film> findByIds(List<Long> ids) {
         if (ids.isEmpty()) {
             return List.of();
@@ -81,7 +91,7 @@ public class InMemoryFilmStorage implements FilmStorage {
 
     @Override
     public List<Film> findFilmsByDirector(int directorId, String sortBy) {
-        return List.of();
+        return null;
     }
 
     @Override

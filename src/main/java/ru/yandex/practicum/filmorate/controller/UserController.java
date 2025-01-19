@@ -74,6 +74,18 @@ public class UserController {
         return userService.getUserEvent(id);
     }
 
+    @GetMapping("/{id}")
+    public UserDto getUserById(@PathVariable long id) {
+        log.debug("Получение пользователя с идентификатором - [{}]", id);
+        return userService.getUserById(id);
+    }
+
+    @DeleteMapping("/{id}")
+    public void deleteUser(@PathVariable long id) {
+        log.debug("Удаление пользователя с идентификатором [{}]", id);
+        userService.deleteUser(id);
+    }
+  
     @GetMapping("/{id}/recommendations")
     public List<FilmDto> getFilmRecommendations(@PathVariable long id) {
         log.debug("Получен запрос на получение рекомендованных для пользователя [{}] фильмов", id);

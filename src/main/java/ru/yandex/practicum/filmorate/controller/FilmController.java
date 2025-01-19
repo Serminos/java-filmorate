@@ -76,6 +76,12 @@ public class FilmController {
         return filmService.getFilmsByDirectorIdWithSort(directorId, sortBy);
     }
 
+    @DeleteMapping("/{id}")
+    public void deleteFilm(@PathVariable long id) {
+        log.debug("Удаление фильма с идентификатором [{}]", id);
+        filmService.deleteFilm(id);
+    }
+
     @GetMapping("/search")
     public List<FilmDto> getSearch(@RequestParam String query, @RequestParam List<String> by) {
         log.debug("Получен запрос на поиск фильма: query=[{}], by=[{}]", query, by);
