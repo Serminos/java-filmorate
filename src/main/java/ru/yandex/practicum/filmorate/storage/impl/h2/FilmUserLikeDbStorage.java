@@ -8,9 +8,8 @@ import ru.yandex.practicum.filmorate.model.FilmUserLike;
 import ru.yandex.practicum.filmorate.storage.FilmUserLikeStorage;
 import ru.yandex.practicum.filmorate.storage.impl.h2.mappers.FilmUserLikeRowMapper;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+
+import java.util.*;
 
 @Repository
 @RequiredArgsConstructor
@@ -86,5 +85,32 @@ class FilmUserLikeDbStorage implements FilmUserLikeStorage {
     public List<FilmUserLike> findFilmLikeByUserId(long userId) {
         return jdbcTemplate.query(" SELECT * FROM film_user_like WHERE user_id = ?",
                 filmUserLikeRowMapper, userId);
+    }
+
+    @Override
+    public Set<Long> findUserLikedFilmIds(long userId) {
+        String sql = "SELECT film_id FROM film_user_like WHERE user_id = ?";
+        return new HashSet<>(jdbcTemplate.queryForList(sql, Long.class, userId));
+    }
+
+    @Override
+    public Set<Long> findUserIdsIntersectByFilmsLikesWithUserByUserId(long userId, Set<Long> filmIds) {
+        if (filmIds.isEmpty()) {
+            return new HashSet<>();
+        }
+        String sql = "SELECT user_id " +
+                "FROM film_user_like WHERE user_id != ? " +
+                "and film_id IN (?)";
+        return new HashSet<>(jdbcTemplate.queryForList(sql, Long.class, userId, filmIds.toArray()));
+    }
+
+    @Override
+    public void removeAllLikesByUserId(long userId) {
+        jdbcTemplate.update("DELETE FROM film_user_like WHERE user_id = ?", userId);
+    }
+
+    @Override
+    public void removeAllLikesByFilmId(long filmId) {
+        jdbcTemplate.update("DELETE FROM film_user_like WHERE film_id = ?", filmId);
     }
 }

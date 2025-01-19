@@ -74,7 +74,8 @@ public class InMemoryFilmGenreStorage implements FilmGenreStorage {
     }
 
     @Override
-    public List<Long> findFilmsIdsByGenreId(Long id) {
+    public List<Long> findFilmIdsByGenreId(Long id) {
+
         return List.of();
     }
 

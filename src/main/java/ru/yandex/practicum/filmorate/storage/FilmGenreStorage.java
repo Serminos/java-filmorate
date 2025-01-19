@@ -17,5 +17,6 @@ public interface FilmGenreStorage {
 
     List<FilmGenre> findFilmByGenreId(long genreId);
 
-    List<Long> findFilmsIdsByGenreId(Long genreId);
+    List<Long> findFilmIdsByGenreId(Long genreId);
+
 }

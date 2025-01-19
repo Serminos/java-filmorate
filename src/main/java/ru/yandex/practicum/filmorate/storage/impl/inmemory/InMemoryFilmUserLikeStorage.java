@@ -83,4 +83,24 @@ public class InMemoryFilmUserLikeStorage implements FilmUserLikeStorage {
         }
         return filmUserLikeAll;
     }
+
+    @Override
+    public Set<Long> findUserLikedFilmIds(long userId) {
+        return null;
+    }
+
+    @Override
+    public Set<Long> findUserIdsIntersectByFilmsLikesWithUserByUserId(long userId, Set<Long> filmIds) {
+        return null;
+    }
+
+    @Override
+    public void removeAllLikesByUserId(long userId) {
+
+    }
+
+    @Override
+    public void removeAllLikesByFilmId(long filmId) {
+
+    }
 }

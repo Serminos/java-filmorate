@@ -199,43 +199,60 @@ public class FilmService {
         filmStorage.clear();
     }
 
-    public List<FilmDto> getPopularFilmsByParams(Long limit, Long genreId, Integer year) {
-        if (genreId != null && cacheGenre.get(genreId) == null) {
+    private void checkSearchParams(Map<String, Long> params) {
+        if (params.get("genreId") != null && cacheGenre.get(params.get("genreId")) == null) {
             throw new BadRequestException("Указанный ID-жанра не найден - " +
-                    "[{" + genreId + "}]");
+                    "[{" + params.get("genreId") + "}]");
         }
 
-        if (year != null && (year < FILM_BIRTHDAY_YEAR || year > LocalDate.now().getYear())) {
+        if (params.get("year") != null &&
+                (params.get("year") < FILM_BIRTHDAY_YEAR || params.get("year") > LocalDate.now().getYear())) {
             throw new BadRequestException("Год выпуска фильма должен быть не раньше 1895 и не позже " +
                     LocalDate.now().getYear() + ".");
         }
+    }
 
-        List<Long> filmsIds = new ArrayList<>();
+    private List<Long> findFilmsIdByParamsWithAndCondition(Map<String, Long> params, Long limit) {
+        List<Long> filteredFilmsId = new ArrayList<>();
 
-        if (genreId != null) {
-            filmsIds = filmGenreStorage.findFilmsIdsByGenreId(genreId);
-        }
+        boolean firstIteration = true;
+        for (Map.Entry<String, Long> entry : params.entrySet()) {
+            List<Long> foundFilmsId = new ArrayList<>();
 
-        if (year != null) {
-            if (filmsIds.isEmpty()) {
-                filmsIds = filmStorage.findFilmsIdsByYear(year);
+            if (entry.getKey().equals("genreId")) {
+                foundFilmsId = filmGenreStorage.findFilmIdsByGenreId(params.get("genreId"));
+            }
+            if (entry.getKey().equals("year")) {
+                foundFilmsId = filmStorage.findFilmsIdsByYear(params.get("year").intValue());
+            }
+
+            if (firstIteration) {
+                filteredFilmsId.addAll(foundFilmsId);
+                firstIteration = false;
             } else {
-                filmsIds.retainAll(filmStorage.findFilmsIdsByYear(year));
+                filteredFilmsId.retainAll(foundFilmsId);
             }
         }
 
-        if (filmsIds.isEmpty()) {
-            filmsIds = filmUserLikeStorage.popularFilmIds(limit);
+        return filteredFilmsId;
+    }
+
+    public List<FilmDto> getPopularFilmsByParams(Map<String, Long> params, Long limit) {
+        checkSearchParams(params);
+
+        List<Long> filteredFilmsId;
+        List<Film> results = new ArrayList<>();
+        if (params.size() == 0) {
+            filteredFilmsId = filmUserLikeStorage.popularFilmIds(limit);
         } else {
-            filmsIds = filmUserLikeStorage.findPopularFilmsIdsFromList(filmsIds, limit);
+            filteredFilmsId = findFilmsIdByParamsWithAndCondition(params, limit);
+        }
+        List<Long> popularFilmsId = filmUserLikeStorage.findPopularFilmsIdsFromList(filteredFilmsId, limit);
+        for (Long filmId : popularFilmsId) {
+            results.add(filmStorage.findById(filmId));
         }
 
-        List<Film> films = new ArrayList<>();
-        for (Long filmId : filmsIds) {
-            films.add(filmStorage.findById(filmId));
-        }
-
-        return mapFilmsToFilmDtosAndAddDopInfo(films);
+        return mapFilmsToFilmDtosAndAddDopInfo(results);
     }
 
     private List<FilmDto> mapFilmsToFilmDtosAndAddDopInfo(List<Film> films) {
@@ -292,6 +309,7 @@ public class FilmService {
         List<Film> filmsByDirector = filmStorage.findFilmsByDirector(directorId, sortBy);
         return mapFilmsToFilmDtosAndAddDopInfo(filmsByDirector);
     }
+
 
     public List<FilmDto> getSearch(String query, List<String> by) {
         Set<Long> filmIds = new HashSet<>();

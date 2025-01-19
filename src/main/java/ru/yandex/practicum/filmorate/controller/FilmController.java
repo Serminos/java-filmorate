@@ -8,7 +8,10 @@ import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.dto.FilmDto;
 import ru.yandex.practicum.filmorate.service.FilmService;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
 @RestController
 @RequestMapping(value = "/films")
@@ -60,10 +63,14 @@ public class FilmController {
     @GetMapping("/popular")
     public List<FilmDto> getPopularFilmsByParams(@RequestParam(defaultValue = "10") Long count,
                                                  @RequestParam(required = false) Long genreId,
-                                                 @RequestParam(required = false) Integer year) {
+                                                 @RequestParam(required = false) Long year) {
         log.debug("Получен запрос на получение самых популярных фильмов в количестве = [{}], " +
                 "возможна фильтрация по параметрам: жанру с id [{}] и/или году [{}]", count, genreId, year);
-        return filmService.getPopularFilmsByParams(count, genreId, year);
+        Map<String, Long> params = new HashMap<>();
+        Optional.ofNullable(genreId).ifPresent(v -> params.put("genreId", genreId));
+        Optional.ofNullable(year).ifPresent(v -> params.put("year", year));
+
+        return filmService.getPopularFilmsByParams(params, count);
     }
 
     @GetMapping("/common")

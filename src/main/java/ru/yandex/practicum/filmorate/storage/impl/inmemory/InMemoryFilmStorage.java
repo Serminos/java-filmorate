@@ -85,7 +85,7 @@ public class InMemoryFilmStorage implements FilmStorage {
     }
 
     @Override
-    public List<Long> findFilmsIdsByYear(Integer year) {
+    public List<Long> findFilmsIdsByYear(int year) {
         return List.of();
     }
 
@@ -96,6 +96,16 @@ public class InMemoryFilmStorage implements FilmStorage {
 
     @Override
     public List<Film> findPopularByFilmIdIn(List<Long> ids) {
+        return null;
+    }
+
+    @Override
+    public void deleteFilm(long filmId) {
+
+    }
+
+    @Override
+    public List<Film> findPopular(long limit) {
         return null;
     }
 }

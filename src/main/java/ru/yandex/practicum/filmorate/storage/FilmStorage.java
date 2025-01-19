@@ -25,5 +25,10 @@ public interface FilmStorage {
 
     List<Film> findPopularByFilmIdIn(List<Long> ids);
 
-    List<Long> findFilmsIdsByYear(Integer year);
+    void deleteFilm(long filmId);
+
+    List<Film> findPopular(long limit);
+
+
+    List<Long> findFilmsIdsByYear(int year);
 }

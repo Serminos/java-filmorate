@@ -141,7 +141,8 @@ class FilmDbStorage implements FilmStorage {
     }
 
     @Override
-    public List<Long> findFilmsIdsByYear(Integer year) {
+
+    public List<Long> findFilmsIdsByYear(int year) {
         final String GET_FILMS_IDS_BY_YEAR = "SELECT film_id " +
                 "FROM film " +
                 "WHERE release_date >= ? AND release_date < ?";
@@ -168,4 +169,33 @@ class FilmDbStorage implements FilmStorage {
 
         return jdbcTemplate.query(sql, filmRowMapper, filmIds.toArray());
     }
+
+    @Override
+    public void deleteFilm(long filmId) {
+        String sql = """
+                    DELETE FROM film_user_like WHERE film_id = ?;
+                    DELETE FROM film_genre WHERE film_id = ?;
+                    DELETE FROM film WHERE film_id = ?;
+                """;
+        jdbcTemplate.update(connection -> {
+            PreparedStatement ps = connection.prepareStatement(sql);
+            ps.setLong(1, filmId);
+            ps.setLong(2, filmId);
+            ps.setLong(3, filmId);
+            return ps;
+        });
+    }
+
+
+    @Override
+    public List<Film> findPopular(long limit) {
+        String sql = " SELECT f.* " +
+                " FROM FILM f " +
+                " LEFT JOIN FILM_USER_LIKE AS ful ON f.film_id = ful.film_id " +
+                " GROUP BY f.film_id " +
+                " ORDER BY COUNT(ful.film_id) desc " +
+                " LIMIT ? ";
+        return jdbcTemplate.query(sql, filmRowMapper, limit);
+    }
+
 }
