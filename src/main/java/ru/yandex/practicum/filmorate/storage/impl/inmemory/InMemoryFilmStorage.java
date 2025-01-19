@@ -109,13 +109,5 @@ public class InMemoryFilmStorage implements FilmStorage {
         return null;
     }
 
-    @Override
-    public void deleteFilm(long filmId) {
 
-    }
-
-    @Override
-    public List<Film> findPopular(long limit) {
-        return null;
-    }
 }
