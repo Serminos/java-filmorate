@@ -78,8 +78,11 @@ class FilmUserLikeDbStorage implements FilmUserLikeStorage {
         if (filmIds.isEmpty()) {
             return new HashSet<>();
         }
-        return new HashSet<>(jdbcTemplate.queryForList(FIND_USER_IDS_INTERSECT_BY_FILMS_LIKES_WITH_USER,
-                Long.class, userId, filmIds.toArray()));
+        String inSql = String.join(",", Collections.nCopies(filmIds.size(), "?"));
+        String sql = String.format(" SELECT user_id " +
+                " FROM film_user_like WHERE user_id != %d " +
+                " and film_id IN (%s) ", userId, inSql);
+        return new HashSet<>(jdbcTemplate.query(sql, (rs, rowNum) -> rs.getLong("user_id"), filmIds.toArray()));
     }
 
     @Override

@@ -24,10 +24,10 @@ class ReviewDbStorage implements ReviewStorage {
     private static final String CREATE = "INSERT INTO review (content, is_positive, user_id, film_id, useful) " +
             "VALUES (?, ?, ?, ?, ?)";
     private static final String UPDATE = "UPDATE review SET content = ?, is_positive = ?, " +
-            "user_id = ?, film_id = ?, useful = ? WHERE review_id = ?";
-    private static final String FIND_BY_ID = "SELECT * FROM review WHERE review_id = ? ORDER BY useful";
-    private static final String FIND_BY_FILM_ID = "SELECT * FROM review WHERE film_id = ? ORDER BY useful LIMIT ?";
-    private static final String GET_ALL = "SELECT * FROM review ORDER BY useful LIMIT ?";
+            " useful = ? WHERE review_id = ?";
+    private static final String FIND_BY_ID = "SELECT * FROM review WHERE review_id = ? ORDER BY useful DESC ";
+    private static final String FIND_BY_FILM_ID = "SELECT * FROM review WHERE film_id = ? ORDER BY useful DESC LIMIT ?";
+    private static final String GET_ALL = "SELECT * FROM review ORDER BY useful DESC LIMIT ?";
     private static final String DELETE_BY_ID = "DELETE FROM review WHERE review_id = ?";
 
     @Override
@@ -50,8 +50,8 @@ class ReviewDbStorage implements ReviewStorage {
 
     @Override
     public Review update(Review review) {
-        int res = jdbcTemplate.update(UPDATE, review.getContent(), review.getIsPositive(), review.getUserId(),
-                review.getFilmId(), review.getUseful(), review.getId());
+        int res = jdbcTemplate.update(UPDATE, review.getContent(), review.getIsPositive(),
+                review.getUseful(), review.getId());
         return review;
     }
 

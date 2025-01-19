@@ -65,7 +65,9 @@ public class ReviewService {
 
     public ReviewDto update(ReviewDto reviewDto) {
         checkReviewExists(reviewDto.getReviewId());
-        Review review = ReviewMapper.mapToReview(reviewDto);
+        Review review = reviewStorage.findById(reviewDto.getReviewId());
+        review.setContent(reviewDto.getContent());
+        review.setIsPositive(reviewDto.getIsPositive());
         review.setUseful(calculateUsefulByReviewId(review.getId()));
         reviewStorage.update(review);
         eventStorage.create(review.getUserId(), EventType.REVIEW, Operation.UPDATE, review.getId());

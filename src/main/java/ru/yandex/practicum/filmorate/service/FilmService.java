@@ -138,6 +138,8 @@ public class FilmService {
             filmDirectorStorage.deleteByFilmId(film.getId());
             filmDirectorStorage.create(film.getId(), filmDto.getDirectors());
             filmDtoResponse.setDirectors(getDirectorDtoByFilmId(film.getId()));
+        } else {
+            filmDirectorStorage.deleteByFilmId(film.getId());
         }
 
         return filmDtoResponse;
@@ -241,20 +243,14 @@ public class FilmService {
 
     public List<FilmDto> getPopularFilmsByParams(Map<String, Long> params, Long limit) {
         checkSearchParams(params);
-
         List<Long> filteredFilmsId;
-        List<Film> results = new ArrayList<>();
         if (params.size() == 0) {
-            filteredFilmsId = filmUserLikeStorage.findPopularFilmIds(limit);
+            filteredFilmsId = filmStorage.findPopularFilmsIdWithLimit(limit);
         } else {
             filteredFilmsId = findFilmsIdByParamsWithAndCondition(params, limit);
         }
-        List<Long> popularFilmsId = filmUserLikeStorage.findPopularFilmsIdsFromList(filteredFilmsId, limit);
-        for (Long filmId : popularFilmsId) {
-            results.add(filmStorage.findById(filmId));
-        }
-
-        return mapFilmsToFilmDtosAndAddDopInfo(results);
+        List<Film> popularFilms = filmStorage.findPopularByFilmIdIn(filteredFilmsId, limit);
+        return mapFilmsToFilmDtosAndAddDopInfo(popularFilms);
     }
 
     private List<FilmDto> mapFilmsToFilmDtosAndAddDopInfo(List<Film> films) {
@@ -331,7 +327,7 @@ public class FilmService {
                 }
             }
         }
-        return mapFilmsToFilmDtosAndAddDopInfo(filmStorage.findPopularByFilmIdIn(filmIds.stream().toList()));
+        return mapFilmsToFilmDtosAndAddDopInfo(filmStorage.findPopularByFilmIdIn(filmIds.stream().toList(), 0));
     }
 
     public List<FilmDto> getFilmRecommendations(long userId) {
@@ -346,9 +342,7 @@ public class FilmService {
         }
 
         Set<Long> recommendedFilmIds = getRecommendedFilmIds(currentUserLikesFilmIds, mostSimilarUserId);
-        return filmStorage.findByIds(recommendedFilmIds.stream().toList()).stream()
-                .map(FilmMapper::mapToFilmDto)
-                .collect(Collectors.toList());
+        return mapFilmsToFilmDtosAndAddDopInfo(filmStorage.findByIds(recommendedFilmIds.stream().toList()));
     }
 
     private Set<Long> getCurrentUserLikes(long userId) {

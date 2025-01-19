@@ -24,11 +24,11 @@ public interface FilmStorage {
 
     List<Film> findByNameContainingIgnoreCase(String query);
 
-    List<Film> findPopularByFilmIdIn(List<Long> ids);
+    List<Film> findPopularByFilmIdIn(List<Long> ids, long limit);
 
     void deleteById(long filmId);
 
-    List<Film> findPopular(long limit);
+    List<Long> findPopularFilmsIdWithLimit(long limit);
 
     List<Long> findFilmsIdsByYear(int year);
 }

@@ -35,47 +35,47 @@ class FilmDbStorage implements FilmStorage {
     private static final String FIND_BY_ID = "SELECT * FROM film WHERE film_id = ?";
     private static final String FIND_BY_NAME = "SELECT * FROM film WHERE lower(name) like '%'||lower(?)||'%'";
     private static final String GET_FILMS_BY_DIRECTOR_SORT_BY_YEAR = """
-                SELECT
-                        f.film_id,
-                        f.name,
-                        f.description,
-                        f.release_date,
-                        f.duration,
-                        f.rating_mpa_id
-                    FROM film f
-                    JOIN film_director fd ON f.film_id = fd.film_id
-                    WHERE fd.director_id = ?
-                    ORDER BY YEAR(f.release_date) ASC;
-                """;
-
-    private static final String GET_FILMS_BY_DIRECTOR_SORT_BY_LIKES = """
-                SELECT
-                        f.film_id,
-                        f.name,
-                        f.description,
-                        f.release_date,
-                        f.duration,
-                        f.rating_mpa_id
+            SELECT
+                    f.film_id,
+                    f.name,
+                    f.description,
+                    f.release_date,
+                    f.duration,
+                    f.rating_mpa_id
                 FROM film f
                 JOIN film_director fd ON f.film_id = fd.film_id
-                LEFT JOIN film_user_like fl ON f.film_id = fl.film_id
                 WHERE fd.director_id = ?
-                GROUP BY f.film_id, f.name, f.description, f.release_date, f.duration, f.rating_mpa_id
-                ORDER BY COUNT(fl.user_id) DESC;
-                """;
+                ORDER BY YEAR(f.release_date) ASC;
+            """;
+
+    private static final String GET_FILMS_BY_DIRECTOR_SORT_BY_LIKES = """
+            SELECT
+                    f.film_id,
+                    f.name,
+                    f.description,
+                    f.release_date,
+                    f.duration,
+                    f.rating_mpa_id
+            FROM film f
+            JOIN film_director fd ON f.film_id = fd.film_id
+            LEFT JOIN film_user_like fl ON f.film_id = fl.film_id
+            WHERE fd.director_id = ?
+            GROUP BY f.film_id, f.name, f.description, f.release_date, f.duration, f.rating_mpa_id
+            ORDER BY COUNT(fl.user_id) DESC;
+            """;
     private static final String GET_FILMS_IDS_BY_YEAR = "SELECT film_id " +
             "FROM film " +
             "WHERE release_date >= ? AND release_date < ?";
     private static final String DELETE_BY_ID = """
-                    DELETE FROM film_user_like WHERE film_id = ?;
-                    DELETE FROM film_genre WHERE film_id = ?;
-                    DELETE FROM film WHERE film_id = ?;
-                """;
-    private static final String FIND_POPULAR = " SELECT f.* " +
+                DELETE FROM film_user_like WHERE film_id = ?;
+                DELETE FROM film_genre WHERE film_id = ?;
+                DELETE FROM film WHERE film_id = ?;
+            """;
+    private static final String FIND_POPULAR = " SELECT f.film_id " +
             " FROM FILM f " +
             " LEFT JOIN FILM_USER_LIKE AS ful ON f.film_id = ful.film_id " +
             " GROUP BY f.film_id " +
-            " ORDER BY COUNT(ful.film_id) desc " +
+            " ORDER BY COUNT(ful.film_id) DESC " +
             " LIMIT ? ";
 
 
@@ -165,18 +165,21 @@ class FilmDbStorage implements FilmStorage {
     }
 
     @Override
-    public List<Film> findPopularByFilmIdIn(List<Long> filmIds) {
+    public List<Film> findPopularByFilmIdIn(List<Long> filmIds, long limit) {
         if (filmIds.isEmpty()) {
             return List.of();
         }
         String inSql = String.join(",", Collections.nCopies(filmIds.size(), "?"));
 
-        String sql = " SELECT f.* " +
+        String sql = String.format(" SELECT f.* " +
                 " FROM FILM f " +
                 " LEFT JOIN FILM_USER_LIKE AS ful ON f.film_id = ful.film_id " +
-                " WHERE f.film_id IN (" + inSql + ") " +
+                " WHERE f.film_id IN (%s) " +
                 " GROUP BY f.film_id " +
-                " ORDER BY COUNT(ful.film_id) desc ";
+                " ORDER BY COUNT(ful.film_id) desc ", inSql);
+        if (limit > 0) {
+            sql += String.format(" LIMIT %d ", limit);
+        }
 
         return jdbcTemplate.query(sql, filmRowMapper, filmIds.toArray());
     }
@@ -194,7 +197,7 @@ class FilmDbStorage implements FilmStorage {
 
 
     @Override
-    public List<Film> findPopular(long limit) {
-        return jdbcTemplate.query(FIND_POPULAR, filmRowMapper, limit);
+    public List<Long> findPopularFilmsIdWithLimit(long limit) {
+        return jdbcTemplate.query(FIND_POPULAR, (rs, rowNum) -> rs.getLong("film_id"), limit);
     }
 }
