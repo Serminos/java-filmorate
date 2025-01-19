@@ -69,7 +69,7 @@ class FilmUserLikeDbStorage implements FilmUserLikeStorage {
                 "and film_id IN (?)";
         return new HashSet<>(jdbcTemplate.queryForList(sql, Long.class, userId, filmIds.toArray()));
     }
-  
+
     public void removeAllLikesByUserId(long userId) {
         jdbcTemplate.update("DELETE FROM film_user_like WHERE user_id = ?", userId);
     }

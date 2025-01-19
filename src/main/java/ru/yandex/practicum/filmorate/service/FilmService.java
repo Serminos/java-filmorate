@@ -345,7 +345,7 @@ public class FilmService {
         log.debug("Рекомендованные фильмы (IDs): {}", recommendedFilmIds);
         return recommendedFilmIds;
     }
-  
+
     public void deleteFilm(long filmId) {
         filmUserLikeStorage.removeAllLikesByFilmId(filmId);
         filmGenreStorage.removeGenreByFilmId(filmId);

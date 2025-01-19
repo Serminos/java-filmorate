@@ -85,7 +85,7 @@ public class UserController {
         log.debug("Удаление пользователя с идентификатором [{}]", id);
         userService.deleteUser(id);
     }
-  
+
     @GetMapping("/{id}/recommendations")
     public List<FilmDto> getFilmRecommendations(@PathVariable long id) {
         log.debug("Получен запрос на получение рекомендованных для пользователя [{}] фильмов", id);
