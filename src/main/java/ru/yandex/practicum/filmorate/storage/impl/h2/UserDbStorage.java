@@ -22,13 +22,24 @@ class UserDbStorage implements UserStorage {
     private final JdbcTemplate jdbcTemplate;
     private final UserRowMapper userRowMapper;
 
-
-    private static final String CREATE = "INSERT INTO users (email, login, name, birthday) VALUES (?, ?, ?, ?)";
-    private static final String UPDATE = "UPDATE users SET email = ?, login = ?, name = ?, birthday = ? WHERE user_id = ?";
-    private static final String FIND_BY_ID = "SELECT * FROM users WHERE user_id = ?";
-    private static final String GET_ALL = "SELECT * FROM users";
-    private static final String DELETE_BY_ID_FROM_FRIENDSHIP = "DELETE FROM friendship WHERE from_user_id = ? OR to_user_id = ?";
-    private static final String DELETE_BY_ID = "DELETE FROM users WHERE user_id = ?";
+    private static final String CREATE = """
+            INSERT INTO users
+            (email, login, name, birthday)
+            VALUES (?, ?, ?, ?);
+            """;
+    private static final String UPDATE = """
+            UPDATE users
+            SET email = ?, login = ?, name = ?, birthday = ?
+            WHERE user_id = ?;
+            """;
+    private static final String FIND_BY_ID = " SELECT * FROM users WHERE user_id = ?; ";
+    private static final String GET_ALL = " SELECT * FROM users; ";
+    private static final String DELETE_BY_ID_FROM_FRIENDSHIP = """
+            DELETE
+            FROM friendship
+            WHERE from_user_id = ? OR to_user_id = ?;
+            """;
+    private static final String DELETE_BY_ID = " DELETE FROM users WHERE user_id = ?; ";
 
     @Override
     public User create(User user) {
@@ -55,7 +66,7 @@ class UserDbStorage implements UserStorage {
     }
 
     @Override
-    public User findById(long userId) {
+    public User findByUserId(long userId) {
         return jdbcTemplate.query(FIND_BY_ID, userRowMapper, userId).stream().findFirst().orElse(null);
     }
 
@@ -65,7 +76,7 @@ class UserDbStorage implements UserStorage {
     }
 
     @Override
-    public void deleteById(long userId) {
+    public void deleteByUserId(long userId) {
         jdbcTemplate.update(DELETE_BY_ID_FROM_FRIENDSHIP, userId, userId);
         jdbcTemplate.update(DELETE_BY_ID, userId);
     }

@@ -17,8 +17,8 @@ class GenreDbStorage implements GenreStorage {
     private final JdbcTemplate jdbcTemplate;
     private final GenreRowMapper genreRowMapper;
 
-    private static final String GET_ALL = " SELECT * FROM genre ORDER BY genre_id ";
-    private static final String FIND_BY_ID = "SELECT * FROM genre WHERE genre_id = ?";
+    private static final String GET_ALL = " SELECT * FROM genre ORDER BY genre_id; ";
+    private static final String FIND_BY_ID = "SELECT * FROM genre WHERE genre_id = ?; ";
 
     @Override
     public List<Genre> getAll() {
@@ -26,7 +26,7 @@ class GenreDbStorage implements GenreStorage {
     }
 
     @Override
-    public Genre findById(long genreId) {
+    public Genre findByGenreId(long genreId) {
         return jdbcTemplate.query(FIND_BY_ID, genreRowMapper, genreId).stream().findFirst().orElse(null);
     }
 }

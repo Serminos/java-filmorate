@@ -11,5 +11,4 @@ public class Friendship {
     Long fromUserId;
     Long toUserId;
     boolean isConfirmed;
-
 }

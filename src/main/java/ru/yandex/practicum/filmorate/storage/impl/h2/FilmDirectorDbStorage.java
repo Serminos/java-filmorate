@@ -24,12 +24,13 @@ public class FilmDirectorDbStorage implements FilmDirectorStorage {
     private FilmDirectorRowMapper filmDirectorRowMapper;
 
     private static final String CREATE = """
-                INSERT INTO film_director (film_id, director_id)
-                VALUES (?, ?);
-                """;
+            INSERT INTO film_director (film_id, director_id)
+            VALUES (?, ?);
+            """;
     private static final String DELETE_BY_FILM_ID = """
-                DELETE FROM film_director
-                WHERE film_id = ?;""";
+            DELETE FROM film_director
+            WHERE film_id = ?;
+            """;
     private static final String FIND_BY_DIRECTOR_ID_IN = " SELECT * FROM film_director WHERE director_id IN (?) ";
 
 
@@ -51,8 +52,6 @@ public class FilmDirectorDbStorage implements FilmDirectorStorage {
 
     @Override
     public void deleteByFilmId(Long filmId) {
-
-
         int deletedCount = jdbcTemplate.update(DELETE_BY_FILM_ID, filmId);
         if (deletedCount > 0) {
             log.trace("Удалено [{}] записей из таблицы film_director для фильма с id = [{}]", deletedCount, filmId);
@@ -62,10 +61,10 @@ public class FilmDirectorDbStorage implements FilmDirectorStorage {
     }
 
     @Override
-    public List<FilmDirector> findByDirectorIdIn(List<Long> directorIds) {
-        if (directorIds.isEmpty()) {
+    public List<FilmDirector> findByDirectorIdIn(List<Long> directorsId) {
+        if (directorsId.isEmpty()) {
             return List.of();
         }
-        return jdbcTemplate.query(FIND_BY_DIRECTOR_ID_IN, filmDirectorRowMapper, directorIds.toArray());
+        return jdbcTemplate.query(FIND_BY_DIRECTOR_ID_IN, filmDirectorRowMapper, directorsId.toArray());
     }
 }

@@ -17,16 +17,26 @@ class ReviewLikeDbStorage implements ReviewLikeStorage {
     private final JdbcTemplate jdbcTemplate;
     private final ReviewLikeRowMapper reviewLikeRowMapper;
 
-    private static final String CREATE = "INSERT INTO review_like (review_id, user_id, is_like) VALUES (?, ?, ?) ";
-    private static final String UPDATE = " UPDATE review_like " +
-            " SET is_like = ? " +
-            " WHERE review_id = ? and user_id=? ";
-    private static final String FIND_BY_REVIEW_ID = "SELECT * FROM review_like WHERE review_id = ?";
-    private static final String GET_ALL = "SELECT * FROM review_like";
-    private static final String FIND_BY_REVIEW_ID_AND_USER_ID = "SELECT * FROM review_like " +
-            "WHERE review_id = ? and user_id = ?";
-    private static final String DELETE_BY_REVIEW_ID_AND_USER_ID = "DELETE FROM review_like " +
-            "WHERE review_id = ? and user_id = ?";
+    private static final String CREATE = """
+            INSERT INTO review_like
+            (review_id, user_id, is_like)
+            VALUES (?, ?, ?);
+            """;
+    private static final String UPDATE = """
+            UPDATE review_like
+            SET is_like = ?
+            WHERE review_id = ? and user_id=?;
+            """;
+    private static final String FIND_BY_REVIEW_ID = " SELECT * FROM review_like WHERE review_id = ?; ";
+    private static final String GET_ALL = " SELECT * FROM review_like; ";
+    private static final String FIND_BY_REVIEW_ID_AND_USER_ID = """
+            SELECT * FROM review_like
+            WHERE review_id = ? and user_id = ?;
+            """;
+    private static final String DELETE_BY_REVIEW_ID_AND_USER_ID = """
+            DELETE FROM review_like
+            WHERE review_id = ? and user_id = ?;
+            """;
 
     @Override
     public ReviewLike create(ReviewLike reviewLike) {

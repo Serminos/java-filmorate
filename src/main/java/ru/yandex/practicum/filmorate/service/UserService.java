@@ -29,7 +29,6 @@ public class UserService {
     private final EventStorage eventStorage;
     private final FilmUserLikeStorage filmUserLikeStorage;
 
-
     @Autowired
     public UserService(@Qualifier("userDbStorage") UserStorage userStorage,
                        @Qualifier("friendshipDbStorage") FriendshipStorage friendshipStorage,
@@ -46,7 +45,7 @@ public class UserService {
     }
 
     private void checkUserExists(long userId) {
-        if (userStorage.findById(userId) == null) {
+        if (userStorage.findByUserId(userId) == null) {
             throw new NotFoundException("Не найден пользователь с ID - [" + userId + "]");
         }
     }
@@ -97,7 +96,7 @@ public class UserService {
         List<Long> commonFriendsIds = friendshipStorage.findCommonFriendId(userId, friendId);
         List<UserDto> commonFriends = new ArrayList<>();
         for (Long commonFriendId : commonFriendsIds) {
-            commonFriends.add(UserMapper.mapToUserDto(userStorage.findById(commonFriendId)));
+            commonFriends.add(UserMapper.mapToUserDto(userStorage.findByUserId(commonFriendId)));
         }
         return commonFriends;
     }
@@ -105,8 +104,8 @@ public class UserService {
     public List<UserDto> getFriends(long userId) {
         checkUserExists(userId);
         List<UserDto> friends = new ArrayList<>();
-        for (Friendship friendship : friendshipStorage.findAllByFromUserId(userId)) {
-            friends.add(UserMapper.mapToUserDto(userStorage.findById(friendship.getToUserId())));
+        for (Friendship friendship : friendshipStorage.findByFromUserId(userId)) {
+            friends.add(UserMapper.mapToUserDto(userStorage.findByUserId(friendship.getToUserId())));
         }
         return friends;
     }
@@ -121,13 +120,13 @@ public class UserService {
 
     public void deleteUserById(long userId) {
         checkUserExists(userId);
-        friendshipStorage.deleteAllByUserId(userId);
-        filmUserLikeStorage.deleteAllLikesByUserId(userId);
-        userStorage.deleteById(userId);
+        friendshipStorage.deleteByUserId(userId);
+        filmUserLikeStorage.deleteByUserId(userId);
+        userStorage.deleteByUserId(userId);
     }
 
     public UserDto getUserById(long userId) {
         checkUserExists(userId);
-        return UserMapper.mapToUserDto(userStorage.findById(userId));
+        return UserMapper.mapToUserDto(userStorage.findByUserId(userId));
     }
 }

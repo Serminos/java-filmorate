@@ -7,5 +7,5 @@ import java.util.List;
 public interface GenreStorage {
     List<Genre> getAll();
 
-    Genre findById(long genreId);
+    Genre findByGenreId(long genreId);
 }

@@ -81,11 +81,11 @@ public class FilmService {
                 .map(DirectorDto::getId)
                 .collect(Collectors.toSet());
 
-        directorStorage.checkExists(directorIdSet);
+        directorStorage.existsByDirectorIdIn(directorIdSet);
     }
 
     private Set<DirectorDto> getDirectorDtoByFilmId(long id) {
-        Set<Director> directors = directorStorage.findDirectorsByFilmId(id);
+        Set<Director> directors = directorStorage.findByFilmId(id);
         if (directors == null) {
             return Collections.emptySet();
         } else {
@@ -148,14 +148,14 @@ public class FilmService {
     private List<GenreDto> updateFilmGenre(Film film, List<GenreDto> genreDtos) {
         List<GenreDto> genreDtosUpdated = new ArrayList<>();
         if (genreDtos == null) return genreDtosUpdated;
-        filmGenreStorage.deleteGenreByFilmId(film.getId());
+        filmGenreStorage.deleteByFilmId(film.getId());
         Set<Long> genreIds = genreDtos.stream()
                 .map(GenreDto::getId)
                 .collect(Collectors.toSet());
         for (Long genreId : genreIds) {
             filmGenreStorage.add(film.getId(), genreId);
         }
-        genreDtosUpdated = filmGenreStorage.findGenreByFilmId(film.getId()).stream()
+        genreDtosUpdated = filmGenreStorage.findByFilmId(film.getId()).stream()
                 .map(item -> new GenreDto(item.getGenreId(), cacheGenre.get(item.getGenreId()).getName()))
                 .collect(Collectors.toList());
         return genreDtosUpdated;
@@ -168,18 +168,18 @@ public class FilmService {
 
     public FilmDto getById(long filmId) {
         checkFilmExists(filmId);
-        Film film = filmStorage.findById(filmId);
+        Film film = filmStorage.findByFilmId(filmId);
         return mapFilmsToFilmDtosAndAddDopInfo(Collections.singletonList(film)).get(0);
     }
 
     private void checkFilmExists(long filmId) {
-        if (filmStorage.findById(filmId) == null) {
+        if (filmStorage.findByFilmId(filmId) == null) {
             throw new NotFoundException("Фильм не найден.");
         }
     }
 
     private void checkUserExists(long userId) {
-        if (userStorage.findById(userId) == null) {
+        if (userStorage.findByUserId(userId) == null) {
             throw new NotFoundException("Пользователь не найден.");
         }
     }
@@ -224,10 +224,10 @@ public class FilmService {
             List<Long> foundFilmsId = new ArrayList<>();
 
             if (entry.getKey().equals("genreId")) {
-                foundFilmsId = filmGenreStorage.findFilmIdsByGenreId(params.get("genreId"));
+                foundFilmsId = filmGenreStorage.findFilmsIdByGenreId(params.get("genreId"));
             }
             if (entry.getKey().equals("year")) {
-                foundFilmsId = filmStorage.findFilmsIdsByYear(params.get("year").intValue());
+                foundFilmsId = filmStorage.findFilmsIdByYear(params.get("year").intValue());
             }
 
             if (firstIteration) {
@@ -261,7 +261,7 @@ public class FilmService {
             if (film.getRatingMpaId() != null) {
                 ratingMpa = cacheRatingMpa.get(film.getRatingMpaId());
             }
-            List<GenreDto> genreDtos = filmGenreStorage.findGenreByFilmId(film.getId()).stream()
+            List<GenreDto> genreDtos = filmGenreStorage.findByFilmId(film.getId()).stream()
                     .map(item -> new GenreDto(item.getGenreId(), cacheGenre.get(item.getGenreId()).getName()))
                     .collect(Collectors.toList());
             FilmDto filmDto = FilmMapper.mapToFilmDto(film);
@@ -277,12 +277,12 @@ public class FilmService {
         checkUserExists(userId);
         checkUserExists(friendId);
 
-        List<Long> userLikedFilmIds = filmUserLikeStorage.findFilmLikeByUserId(userId)
+        List<Long> userLikedFilmIds = filmUserLikeStorage.findByUserId(userId)
                 .stream()
                 .map(FilmUserLike::getFilmId)
                 .collect(Collectors.toList());
 
-        List<Long> friendLikedFilmIds = filmUserLikeStorage.findFilmLikeByUserId(friendId)
+        List<Long> friendLikedFilmIds = filmUserLikeStorage.findByUserId(friendId)
                 .stream()
                 .map(FilmUserLike::getFilmId)
                 .collect(Collectors.toList());
@@ -293,18 +293,18 @@ public class FilmService {
             return List.of();
         }
 
-        List<Film> films = filmStorage.findByIds(userLikedFilmIds);
+        List<Film> films = filmStorage.findByFilmIdIn(userLikedFilmIds);
 
         return mapFilmsToFilmDtosAndAddDopInfo(films);
     }
 
     public List<FilmDto> getFilmsByDirectorIdWithSort(long directorId, String sortBy) {
-        Integer count = directorStorage.checkExistsById(directorId);
+        Integer count = directorStorage.existsByDirectorId(directorId);
         if (count == null || count == 0) {
             throw new NotFoundException("Режиссер с id = " + directorId + " не найден");
         }
 
-        List<Film> filmsByDirector = filmStorage.findFilmsByDirectorId(directorId, sortBy);
+        List<Film> filmsByDirector = filmStorage.findByDirectorIdWithSort(directorId, sortBy);
         return mapFilmsToFilmDtosAndAddDopInfo(filmsByDirector);
     }
 
@@ -342,18 +342,18 @@ public class FilmService {
         }
 
         Set<Long> recommendedFilmIds = getRecommendedFilmIds(currentUserLikesFilmIds, mostSimilarUserId);
-        return mapFilmsToFilmDtosAndAddDopInfo(filmStorage.findByIds(recommendedFilmIds.stream().toList()));
+        return mapFilmsToFilmDtosAndAddDopInfo(filmStorage.findByFilmIdIn(recommendedFilmIds.stream().toList()));
     }
 
     private Set<Long> getCurrentUserLikes(long userId) {
-        Set<Long> currentUserLikes = filmUserLikeStorage.findUserLikedFilmIdsByUserId(userId);
+        Set<Long> currentUserLikes = filmUserLikeStorage.findFilmsIdByUserId(userId);
         log.debug("Пользователь с ID [{}] лайкал фильмы с ID: {}", userId, currentUserLikes);
         return currentUserLikes;
     }
 
     private List<Long> getIntersectFilmsWithOtherUsersLikesIds(long userId, Set<Long> currentUserLikesFilmIds) {
         List<Long> otherUserIds = filmUserLikeStorage
-                .findUserIdsIntersectByFilmsLikesWithUserByUserId(userId, currentUserLikesFilmIds)
+                .findUsersIdIntersectByFilmsLikesWithUserByUserId(userId, currentUserLikesFilmIds)
                 .stream()
                 .toList();
         log.debug("ID-других пользователей: {}", otherUserIds);
@@ -365,7 +365,7 @@ public class FilmService {
         long maxCommonLikes = 0L;
 
         for (Long otherUserId : otherUsers) {
-            Set<Long> otherUserLikes = filmUserLikeStorage.findUserLikedFilmIdsByUserId(otherUserId);
+            Set<Long> otherUserLikes = filmUserLikeStorage.findFilmsIdByUserId(otherUserId);
             Long commonLikes = calculateCommonLikes(currentUserLikes, otherUserLikes);
 
             if (commonLikes > maxCommonLikes) {
@@ -387,7 +387,7 @@ public class FilmService {
     }
 
     private Set<Long> getRecommendedFilmIds(Set<Long> currentUserLikes, Long mostSimilarUserId) {
-        Set<Long> similarUserLikes = filmUserLikeStorage.findUserLikedFilmIdsByUserId(mostSimilarUserId);
+        Set<Long> similarUserLikes = filmUserLikeStorage.findFilmsIdByUserId(mostSimilarUserId);
         Set<Long> recommendedFilmIds = new HashSet<>(similarUserLikes);
         recommendedFilmIds.removeAll(currentUserLikes);
         log.debug("Рекомендованные фильмы (IDs): {}", recommendedFilmIds);
@@ -395,8 +395,8 @@ public class FilmService {
     }
 
     public void deleteById(long filmId) {
-        filmUserLikeStorage.deleteAllLikesByFilmId(filmId);
-        filmGenreStorage.deleteGenreByFilmId(filmId);
-        filmStorage.deleteById(filmId);
+        filmUserLikeStorage.deleteByFilmId(filmId);
+        filmGenreStorage.deleteByFilmId(filmId);
+        filmStorage.deleteByFilmId(filmId);
     }
 }

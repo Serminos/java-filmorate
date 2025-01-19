@@ -12,23 +12,21 @@ public interface FilmStorage {
 
     List<Film> getAll();
 
-    Film findById(long filmId);
-
-    boolean deleteLikeByUserId(long filmId, long userId);
+    Film findByFilmId(long filmId);
 
     void clear();
 
-    List<Film> findByIds(List<Long> ids);
+    List<Film> findByFilmIdIn(List<Long> filmsId);
 
-    List<Film> findFilmsByDirectorId(long directorId, String sortBy);
+    List<Film> findByDirectorIdWithSort(long directorId, String sortBy);
 
     List<Film> findByNameContainingIgnoreCase(String query);
 
-    List<Film> findPopularByFilmIdIn(List<Long> ids, long limit);
+    List<Film> findPopularByFilmIdIn(List<Long> filmsId, long limit);
 
-    void deleteById(long filmId);
+    void deleteByFilmId(long filmId);
 
     List<Long> findPopularFilmsIdWithLimit(long limit);
 
-    List<Long> findFilmsIdsByYear(int year);
+    List<Long> findFilmsIdByYear(int year);
 }

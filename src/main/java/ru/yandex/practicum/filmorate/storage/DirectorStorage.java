@@ -13,15 +13,15 @@ public interface DirectorStorage {
 
     Director create(Director director);
 
-    Director update(Director newDirector);
+    Director update(Director director);
 
-    Integer deleteById(long directorId);
+    Integer deleteByDirectorId(long directorId);
 
-    Set<Director> findDirectorsByFilmId(long filmId);
+    Set<Director> findByFilmId(long filmId);
 
-    void checkExists(Set<Long> directorIdSet);
+    void existsByDirectorIdIn(Set<Long> directorsId);
 
-    Integer checkExistsById(long directorId);
+    Integer existsByDirectorId(long directorId);
 
     List<Director> findByNameContainingIgnoreCase(String query);
 }

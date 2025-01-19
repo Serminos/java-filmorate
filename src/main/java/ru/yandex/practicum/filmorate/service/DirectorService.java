@@ -52,7 +52,7 @@ public class DirectorService {
             throw new BadRequestException("Id должен быть указан");
         }
 
-        Integer count = directorStorage.checkExistsById(directorId);
+        Integer count = directorStorage.existsByDirectorId(directorId);
         if (count == null || count == 0) {
             throw new NotFoundException("Режиссер с id = " + directorId + " не найден");
         }
@@ -61,11 +61,11 @@ public class DirectorService {
         return DirectorMapper.mapToDirectorDto(directorStorage.update(DirectorMapper.mapToDirector(newDirectorDto)));
     }
 
-    public void deleteById(long id) {
-        if (directorStorage.deleteById(id) == 0) {
-            log.warn("Попытка удаления: режиссер с id = [{}] не найден", id);
+    public void deleteById(long directorId) {
+        if (directorStorage.deleteByDirectorId(directorId) == 0) {
+            log.warn("Попытка удаления: режиссер с director_id = [{}] не найден", directorId);
         } else {
-            log.trace("Режиссер с id = [{}] успешно удален", id);
+            log.trace("Режиссер с id = [{}] успешно удален", directorId);
         }
     }
 }

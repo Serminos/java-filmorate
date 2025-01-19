@@ -26,25 +26,27 @@ public class DirectorDbStorage implements DirectorStorage {
     private JdbcTemplate jdbcTemplate;
     private DirectorRowMapper directorRowMapper;
 
-    private static final String GET_ALL_DIRECTORS = "SELECT * from directors;";
-    private static final String GET_DIRECTOR_BY_ID = "SELECT director_id, name FROM directors WHERE director_id = ?;";
-    private static final String CREATE_DIRECTOR = "INSERT INTO directors (name) VALUES (?);";
-    private static final String UPDATE_DIRECTOR = "UPDATE directors SET name = ? WHERE director_id = ?;";
-    private static final String DELETE_DIRECTOR_BY_ID = "DELETE FROM directors WHERE director_id = ?;";
+    private static final String GET_ALL_DIRECTORS = " SELECT * from directors; ";
+    private static final String GET_DIRECTOR_BY_ID = " SELECT * FROM directors WHERE director_id = ?; ";
+    private static final String CREATE_DIRECTOR = " INSERT INTO directors (name) VALUES (?); ";
+    private static final String UPDATE_DIRECTOR = " UPDATE directors SET name = ? WHERE director_id = ?; ";
+    private static final String DELETE_DIRECTOR_BY_ID = " DELETE FROM directors WHERE director_id = ?; ";
     private static final String GET_DIRECTORS_BY_FILM_ID = """
-                SELECT d.director_id, d.name
-                FROM directors d
-                JOIN film_director fd ON d.director_id = fd.director_id
-                WHERE fd.film_id = ?
-                """;
+            SELECT d.*
+            FROM directors d
+            JOIN film_director fd ON d.director_id = fd.director_id
+            WHERE fd.film_id = ?
+            """;
     private static final String CHECK_DIRECTOR_EXISTS = """
-                SELECT COUNT(*)
-                FROM directors
-                WHERE director_id = ?;
-                """;
-    private static final String FIND_BY_NAME = " SELECT * " +
-            " FROM DIRECTORS " +
-            " WHERE lower(NAME) like '%'||lower(?)||'%' ";
+            SELECT COUNT(*)
+            FROM directors
+            WHERE director_id = ?;
+            """;
+    private static final String FIND_BY_NAME = """
+            SELECT *
+            FROM DIRECTORS
+            WHERE lower(NAME) like '%'||lower(?)||'%'
+            """;
 
 
     @Override
@@ -91,12 +93,12 @@ public class DirectorDbStorage implements DirectorStorage {
     }
 
     @Override
-    public Integer deleteById(long directorId) {
+    public Integer deleteByDirectorId(long directorId) {
         return jdbcTemplate.update(DELETE_DIRECTOR_BY_ID, directorId);
     }
 
     @Override
-    public Set<Director> findDirectorsByFilmId(long filmId) {
+    public Set<Director> findByFilmId(long filmId) {
         log.trace("Получение режиссера/-ов фильма с id: [{}]", filmId);
         Set<Director> directors = new HashSet<>(jdbcTemplate.query(GET_DIRECTORS_BY_FILM_ID, directorRowMapper, filmId));
         log.trace("Список режиссеров для фильма с id [{}] подготовлен. Найдено [{}] режиссеров.", filmId, directors.size());
@@ -105,7 +107,7 @@ public class DirectorDbStorage implements DirectorStorage {
 
 
     @Override
-    public void checkExists(Set<Long> directorIdSet) {
+    public void existsByDirectorIdIn(Set<Long> directorIdSet) {
         for (Long directorId : directorIdSet) {
             Integer count = jdbcTemplate.queryForObject(CHECK_DIRECTOR_EXISTS, Integer.class, directorId);
             if (count == null || count == 0) {
@@ -115,7 +117,7 @@ public class DirectorDbStorage implements DirectorStorage {
     }
 
     @Override
-    public Integer checkExistsById(long directorId) {
+    public Integer existsByDirectorId(long directorId) {
         return jdbcTemplate.queryForObject(CHECK_DIRECTOR_EXISTS, Integer.class, directorId);
     }
 

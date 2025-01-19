@@ -9,7 +9,7 @@ public interface ReviewStorage {
 
     Review update(Review review);
 
-    Review findById(long reviewId);
+    Review findByReviewId(long reviewId);
 
     List<Review> findByFilmId(Long filmId, long limit);
 

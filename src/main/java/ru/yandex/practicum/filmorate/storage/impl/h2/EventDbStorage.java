@@ -18,10 +18,12 @@ import java.util.List;
 public class EventDbStorage implements EventStorage {
     private final JdbcTemplate jdbcTemplate;
     private final EventRowMapper eventRowMapper;
-
-    private static final String CREATE_EVENT = "INSERT INTO feeds (user_id, timestamp, event_type, operation, entity_id) " +
-            "VALUES (?, ?, ?, ?, ?)";
-    private static final String FIND_USER_EVENTS_BY_ID = "SELECT * FROM feeds WHERE user_id = ?";
+    private static final String CREATE_EVENT = """
+            INSERT INTO feeds
+            (user_id, timestamp, event_type, operation, entity_id)
+            VALUES (?, ?, ?, ?, ?)
+            """;
+    private static final String FIND_USER_EVENTS_BY_ID = " SELECT * FROM feeds WHERE user_id = ?; ";
 
     @Override
     public void create(long userId, EventType eventType, Operation operation, long entityId) {

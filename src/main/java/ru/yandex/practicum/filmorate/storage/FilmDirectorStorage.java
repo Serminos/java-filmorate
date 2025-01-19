@@ -12,6 +12,5 @@ public interface FilmDirectorStorage {
 
     void deleteByFilmId(Long filmId);
 
-    List<FilmDirector> findByDirectorIdIn(List<Long> directorIds);
-
+    List<FilmDirector> findByDirectorIdIn(List<Long> directorsId);
 }

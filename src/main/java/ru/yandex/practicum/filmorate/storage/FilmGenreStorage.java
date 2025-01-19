@@ -8,16 +8,12 @@ public interface FilmGenreStorage {
 
     void add(long filmId, long genreId);
 
-    void deleteGenreByFilmId(long filmId);
-
-    void deleteGenreByFilmIdAndGenreId(long filmId, long genreId);
+    void deleteByFilmId(long filmId);
 
     List<FilmGenre> getAll();
 
-    List<FilmGenre> findGenreByFilmId(long filmId);
+    List<FilmGenre> findByFilmId(long filmId);
 
-    List<FilmGenre> findFilmByGenreId(long genreId);
-
-    List<Long> findFilmIdsByGenreId(Long genreId);
+    List<Long> findFilmsIdByGenreId(Long genreId);
 
 }
