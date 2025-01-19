@@ -197,5 +197,4 @@ class FilmDbStorage implements FilmStorage {
                 " LIMIT ? ";
         return jdbcTemplate.query(sql, filmRowMapper, limit);
     }
-
 }

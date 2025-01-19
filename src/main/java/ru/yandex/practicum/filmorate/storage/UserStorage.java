@@ -13,7 +13,7 @@ public interface UserStorage {
 
     Collection<User> all();
 
-    void clear();
-
     void deleteUser(long id);
+
+    void clear();
 }

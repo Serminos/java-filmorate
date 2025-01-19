@@ -56,6 +56,7 @@ public class InMemoryFilmUserLikeStorage implements FilmUserLikeStorage {
     }
 
     @Override
+
     public List<FilmUserLike> findUserLikeByFilmId(long filmId) {
         List<FilmUserLike> filmUserLikeAll = new ArrayList<>();
         Set<Long> usersIds = filmUserLike.get(filmId);
@@ -90,7 +91,7 @@ public class InMemoryFilmUserLikeStorage implements FilmUserLikeStorage {
     }
 
     @Override
-    public Set<Long> findUserIdsIntersectByFilmsLikesWithUserByUserId(long userId, Set<Long> filmIds) {
+    public Set<Long> findUserIdsIntersectByFilmsLikesWithUserByUserId(long userId, Set<Long> currentUserLikesFilmIds) {
         return null;
     }
 

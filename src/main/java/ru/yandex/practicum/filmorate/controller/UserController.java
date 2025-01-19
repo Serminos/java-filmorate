@@ -7,7 +7,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.dto.EventDto;
+import ru.yandex.practicum.filmorate.dto.FilmDto;
 import ru.yandex.practicum.filmorate.dto.UserDto;
+import ru.yandex.practicum.filmorate.service.FilmService;
 import ru.yandex.practicum.filmorate.service.UserService;
 
 import java.util.List;
@@ -17,12 +19,14 @@ import java.util.List;
 @RequestMapping(value = "/users")
 @Validated
 public class UserController {
-    private static final Logger log = LoggerFactory.getLogger(FilmController.class);
+    private static final Logger log = LoggerFactory.getLogger(UserController.class);
     UserService userService;
+    FilmService filmService;
 
     @Autowired
-    public UserController(UserService userService) {
+    public UserController(UserService userService, FilmService filmService) {
         this.userService = userService;
+        this.filmService = filmService;
     }
 
     @PostMapping
@@ -68,5 +72,25 @@ public class UserController {
     public List<EventDto> getEvent(@PathVariable long id) {
         log.debug("Получение ленты событий пользователя - [{}]", id);
         return userService.getUserEvent(id);
+    }
+
+    @GetMapping("/{id}")
+    public UserDto getUserById(@PathVariable long id) {
+        log.debug("Получение пользователя с идентификатором - [{}]", id);
+        return userService.getUserById(id);
+    }
+
+    @DeleteMapping("/{id}")
+    public void deleteUser(@PathVariable long id) {
+        log.debug("Удаление пользователя с идентификатором [{}]", id);
+        userService.deleteUser(id);
+    }
+
+    @GetMapping("/{id}/recommendations")
+    public List<FilmDto> getFilmRecommendations(@PathVariable long id) {
+        log.debug("Получен запрос на получение рекомендованных для пользователя [{}] фильмов", id);
+        List<FilmDto> recommendationDtos = filmService.getRecommendations(id);
+        log.debug("Количество рекомендованных фильмов для пользователя [{}]: {}", id, recommendationDtos.size());
+        return recommendationDtos;
     }
 }
