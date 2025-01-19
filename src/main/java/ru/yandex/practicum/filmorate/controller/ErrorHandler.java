@@ -55,5 +55,4 @@ public class ErrorHandler {
         log.info("Ошибка сервера: {}", e.getMessage());
         return new ErrorResponse("Ошибка сервера: " + e.getMessage());
     }
-
 }

@@ -29,7 +29,6 @@ public class UserService {
     private final EventStorage eventStorage;
     private final FilmUserLikeStorage filmUserLikeStorage;
 
-
     @Autowired
     public UserService(@Qualifier("userDbStorage") UserStorage userStorage,
                        @Qualifier("friendshipDbStorage") FriendshipStorage friendshipStorage,
@@ -46,7 +45,7 @@ public class UserService {
     }
 
     private void checkUserExists(long userId) {
-        if (userStorage.findById(userId) == null) {
+        if (userStorage.findByUserId(userId) == null) {
             throw new NotFoundException("Не найден пользователь с ID - [" + userId + "]");
         }
     }
@@ -56,9 +55,9 @@ public class UserService {
         return UserMapper.mapToUserDto(userStorage.update(UserMapper.mapToUser(user)));
     }
 
-    public List<UserDto> all() {
+    public List<UserDto> getAll() {
         List<UserDto> userDtos = new ArrayList<>();
-        for (User user : userStorage.all()) {
+        for (User user : userStorage.getAll()) {
             userDtos.add(UserMapper.mapToUserDto(user));
         }
         return userDtos;
@@ -87,17 +86,17 @@ public class UserService {
         checkUserExists(userId);
         checkUserExists(friendId);
         Friendship friendship = new Friendship(userId, friendId, false);
-        friendshipStorage.remove(friendship);
+        friendshipStorage.delete(friendship);
         eventStorage.create(userId, EventType.FRIEND, Operation.REMOVE, friendId);
     }
 
-    public List<UserDto> commonFriends(long userId, long friendId) {
+    public List<UserDto> getCommonFriends(long userId, long friendId) {
         checkUserExists(userId);
         checkUserExists(friendId);
         List<Long> commonFriendsIds = friendshipStorage.findCommonFriendId(userId, friendId);
         List<UserDto> commonFriends = new ArrayList<>();
         for (Long commonFriendId : commonFriendsIds) {
-            commonFriends.add(UserMapper.mapToUserDto(userStorage.findById(commonFriendId)));
+            commonFriends.add(UserMapper.mapToUserDto(userStorage.findByUserId(commonFriendId)));
         }
         return commonFriends;
     }
@@ -105,29 +104,29 @@ public class UserService {
     public List<UserDto> getFriends(long userId) {
         checkUserExists(userId);
         List<UserDto> friends = new ArrayList<>();
-        for (Friendship friendship : friendshipStorage.findAllByFromUserId(userId)) {
-            friends.add(UserMapper.mapToUserDto(userStorage.findById(friendship.getToUserId())));
+        for (Friendship friendship : friendshipStorage.findByFromUserId(userId)) {
+            friends.add(UserMapper.mapToUserDto(userStorage.findByUserId(friendship.getToUserId())));
         }
         return friends;
     }
 
-    public List<EventDto> getUserEvent(long userId) {
+    public List<EventDto> getEvent(long userId) {
         checkUserExists(userId);
-        List<Event> events = eventStorage.getUserEvents(userId);
+        List<Event> events = eventStorage.findUserEventsById(userId);
         return events.stream()
                 .map(EventMapper::mapToEventDto)
                 .collect(Collectors.toList());
     }
 
-    public void deleteUser(long userId) {
+    public void deleteUserById(long userId) {
         checkUserExists(userId);
-        friendshipStorage.removeAllByUserId(userId);
-        filmUserLikeStorage.removeAllLikesByUserId(userId);
-        userStorage.deleteUser(userId);
+        friendshipStorage.deleteByUserId(userId);
+        filmUserLikeStorage.deleteByUserId(userId);
+        userStorage.deleteByUserId(userId);
     }
 
     public UserDto getUserById(long userId) {
         checkUserExists(userId);
-        return UserMapper.mapToUserDto(userStorage.findById(userId));
+        return UserMapper.mapToUserDto(userStorage.findByUserId(userId));
     }
 }

@@ -7,21 +7,21 @@ import java.util.Set;
 
 public interface DirectorStorage {
 
-    List<Director> getAllDirectors();
+    List<Director> getAll();
 
-    Director findDirectorById(long id);
+    Director findById(long directorId);
 
-    Director createDirector(Director director);
+    Director create(Director director);
 
-    Director updateDirector(Director newDirector);
+    Director update(Director director);
 
-    Integer deleteDirectorById(long id);
+    Integer deleteByDirectorId(long directorId);
 
-    Set<Director> getDirectorsByFilmId(long id);
+    Set<Director> findByFilmId(long filmId);
 
-    void checkExists(Set<Long> directorIdSet);
+    void existsByDirectorIdIn(Set<Long> directorsId);
 
-    Integer checkExistsById(long id);
+    Integer existsByDirectorId(long directorId);
 
     List<Director> findByNameContainingIgnoreCase(String query);
 }

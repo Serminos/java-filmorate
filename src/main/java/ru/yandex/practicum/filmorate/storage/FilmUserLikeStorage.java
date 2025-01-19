@@ -6,23 +6,24 @@ import java.util.List;
 import java.util.Set;
 
 public interface FilmUserLikeStorage {
+
     void add(long filmId, long userId);
 
-    void remove(long filmId, long userId);
+    void delete(long filmId, long userId);
 
     void clear();
 
-    List<FilmUserLike> all();
+    List<FilmUserLike> getAll();
 
-    List<FilmUserLike> findUserLikeByFilmId(long filmId);
+    List<FilmUserLike> findByFilmId(long filmId);
 
-    List<FilmUserLike> findFilmLikeByUserId(long userId);
+    List<FilmUserLike> findByUserId(long userId);
 
-    Set<Long> findUserLikedFilmIds(long userId);
+    Set<Long> findFilmsIdByUserId(long userId);
 
-    Set<Long> findUserIdsIntersectByFilmsLikesWithUserByUserId(long userId, Set<Long> filmIds);
+    Set<Long> findUsersIdIntersectByFilmsLikesWithUserByUserId(long userId, Set<Long> filmsId);
 
-    void removeAllLikesByUserId(long userId);
+    void deleteByUserId(long userId);
 
-    void removeAllLikesByFilmId(long filmId);
+    void deleteByFilmId(long filmId);
 }

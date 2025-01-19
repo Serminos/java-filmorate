@@ -22,7 +22,7 @@ public class DirectorService {
     private final DirectorStorage directorStorage;
 
     public List<DirectorDto> getAll() {
-        List<Director> directors = directorStorage.getAllDirectors();
+        List<Director> directors = directorStorage.getAll();
 
         List<DirectorDto> allDirectorsDto = new ArrayList<>();
         for (Director director : directors) {
@@ -35,7 +35,7 @@ public class DirectorService {
     public DirectorDto getById(long id) {
         Director director;
         try {
-            director = directorStorage.findDirectorById(id);
+            director = directorStorage.findById(id);
         } catch (EmptyResultDataAccessException e) {
             throw new NotFoundException("Режиссер с id = " + id + " не найден");
         }
@@ -43,7 +43,7 @@ public class DirectorService {
     }
 
     public DirectorDto create(DirectorDto directorDto) {
-        return DirectorMapper.mapToDirectorDto(directorStorage.createDirector(DirectorMapper.mapToDirector(directorDto)));
+        return DirectorMapper.mapToDirectorDto(directorStorage.create(DirectorMapper.mapToDirector(directorDto)));
     }
 
     public DirectorDto update(DirectorDto newDirectorDto) {
@@ -52,20 +52,20 @@ public class DirectorService {
             throw new BadRequestException("Id должен быть указан");
         }
 
-        Integer count = directorStorage.checkExistsById(directorId);
+        Integer count = directorStorage.existsByDirectorId(directorId);
         if (count == null || count == 0) {
             throw new NotFoundException("Режиссер с id = " + directorId + " не найден");
         }
 
 
-        return DirectorMapper.mapToDirectorDto(directorStorage.updateDirector(DirectorMapper.mapToDirector(newDirectorDto)));
+        return DirectorMapper.mapToDirectorDto(directorStorage.update(DirectorMapper.mapToDirector(newDirectorDto)));
     }
 
-    public void deleteById(long id) {
-        if (directorStorage.deleteDirectorById(id) == 0) {
-            log.warn("Попытка удаления: режиссер с id = [{}] не найден", id);
+    public void deleteById(long directorId) {
+        if (directorStorage.deleteByDirectorId(directorId) == 0) {
+            log.warn("Попытка удаления: режиссер с director_id = [{}] не найден", directorId);
         } else {
-            log.trace("Режиссер с id = [{}] успешно удален", id);
+            log.trace("Режиссер с id = [{}] успешно удален", directorId);
         }
     }
 }

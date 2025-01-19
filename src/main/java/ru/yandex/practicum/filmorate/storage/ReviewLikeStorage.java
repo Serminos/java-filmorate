@@ -9,7 +9,7 @@ public interface ReviewLikeStorage {
 
     ReviewLike update(ReviewLike review);
 
-    List<ReviewLike> all();
+    List<ReviewLike> getAll();
 
     List<ReviewLike> findByReviewId(long reviewId);
 

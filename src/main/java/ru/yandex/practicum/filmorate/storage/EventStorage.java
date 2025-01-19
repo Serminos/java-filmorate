@@ -10,5 +10,5 @@ public interface EventStorage {
 
     void create(long userId, EventType eventType, Operation operation, long entityId);
 
-    List<Event> getUserEvents(Long id);
+    List<Event> findUserEventsById(Long userId);
 }

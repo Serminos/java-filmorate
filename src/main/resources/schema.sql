@@ -17,6 +17,8 @@ CREATE TABLE IF NOT EXISTS film (
     CONSTRAINT film_rating_mpa_fk FOREIGN KEY (rating_mpa_id) REFERENCES rating_mpa(rating_mpa_id) ON DELETE SET NULL
 );
 
+CREATE INDEX IF NOT EXISTS film_release_date_idx ON film(release_date);
+
 CREATE TABLE IF NOT EXISTS users (
     user_id bigserial NOT NULL,
     email varchar NOT NULL,
@@ -37,7 +39,7 @@ CREATE TABLE IF NOT EXISTS genre (
 CREATE TABLE IF NOT EXISTS film_genre (
     film_id int8 NOT NULL,
     genre_id int8 NOT NULL,
-    CONSTRAINT film_genre_unique UNIQUE (film_id, genre_id),
+    CONSTRAINT film_genre_unique PRIMARY KEY (film_id, genre_id),
     CONSTRAINT film_genre_film_fk FOREIGN KEY (film_id) REFERENCES film(film_id) ON DELETE CASCADE,
     CONSTRAINT film_genre_genre_fk FOREIGN KEY (genre_id) REFERENCES genre(genre_id) ON DELETE CASCADE
 );

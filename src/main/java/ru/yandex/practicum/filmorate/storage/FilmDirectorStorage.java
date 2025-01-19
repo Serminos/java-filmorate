@@ -8,10 +8,9 @@ import java.util.Set;
 
 public interface FilmDirectorStorage {
 
-    void create(Long id, Set<DirectorDto> directors);
+    void create(Long filmId, Set<DirectorDto> directors);
 
-    void deleteByFilmId(Long id);
+    void deleteByFilmId(Long filmId);
 
-    List<FilmDirector> findByDirectorIdIn(List<Long> directorIds);
-
+    List<FilmDirector> findByDirectorIdIn(List<Long> directorsId);
 }

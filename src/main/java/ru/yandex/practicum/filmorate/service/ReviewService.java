@@ -49,23 +49,25 @@ public class ReviewService {
     }
 
     private void checkReviewExists(long reviewId) {
-        if (reviewStorage.findById(reviewId) == null) {
+        if (reviewStorage.findByReviewId(reviewId) == null) {
             throw new NotFoundException("Не найден отзыв с ID - [" + reviewId + "]");
         }
     }
 
     private void checkReview(ReviewDto reviewDto) {
-        if (userStorage.findById(reviewDto.getUserId()) == null) {
+        if (userStorage.findByUserId(reviewDto.getUserId()) == null) {
             throw new NotFoundException("Не найден пользователь с ID - [" + reviewDto.getUserId() + "]");
         }
-        if (filmService.getFilmById(reviewDto.getFilmId()) == null) {
+        if (filmService.getById(reviewDto.getFilmId()) == null) {
             throw new NotFoundException("Не найден фильм с ID - [" + reviewDto.getUserId() + "]");
         }
     }
 
     public ReviewDto update(ReviewDto reviewDto) {
         checkReviewExists(reviewDto.getReviewId());
-        Review review = ReviewMapper.mapToReview(reviewDto);
+        Review review = reviewStorage.findByReviewId(reviewDto.getReviewId());
+        review.setContent(reviewDto.getContent());
+        review.setIsPositive(reviewDto.getIsPositive());
         review.setUseful(calculateUsefulByReviewId(review.getId()));
         reviewStorage.update(review);
         eventStorage.create(review.getUserId(), EventType.REVIEW, Operation.UPDATE, review.getId());
@@ -73,17 +75,17 @@ public class ReviewService {
     }
 
     public void updateReviewUseful(long reviewId) {
-        Review review = reviewStorage.findById(reviewId);
+        Review review = reviewStorage.findByReviewId(reviewId);
         review.setUseful(calculateUsefulByReviewId(review.getId()));
         reviewStorage.update(review);
     }
 
     public void deleteById(long reviewId) {
-        Review review = reviewStorage.findById(reviewId);
+        Review review = reviewStorage.findByReviewId(reviewId);
         if (review == null) {
             throw new NotFoundException("Отзыв не найден.");
         }
-        reviewStorage.deleteReview(reviewId);
+        reviewStorage.deleteById(reviewId);
         eventStorage.create(review.getUserId(), EventType.REVIEW, Operation.REMOVE, reviewId);
     }
 
@@ -116,7 +118,7 @@ public class ReviewService {
     }
 
     public ReviewDto findById(long reviewId) {
-        Review review = reviewStorage.findById(reviewId);
+        Review review = reviewStorage.findByReviewId(reviewId);
         if (review == null) {
             throw new NotFoundException("Отзыв не найден.");
         }
@@ -137,7 +139,7 @@ public class ReviewService {
     }
 
     public List<ReviewDto> all(long limit) {
-        List<Review> reviews = reviewStorage.all(limit);
+        List<Review> reviews = reviewStorage.getAll(limit);
         if (reviews.isEmpty()) {
             return new ArrayList<>();
         }

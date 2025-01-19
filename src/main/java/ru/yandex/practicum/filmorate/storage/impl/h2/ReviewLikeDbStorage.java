@@ -17,42 +17,58 @@ class ReviewLikeDbStorage implements ReviewLikeStorage {
     private final JdbcTemplate jdbcTemplate;
     private final ReviewLikeRowMapper reviewLikeRowMapper;
 
+    private static final String CREATE = """
+            INSERT INTO review_like
+            (review_id, user_id, is_like)
+            VALUES (?, ?, ?);
+            """;
+    private static final String UPDATE = """
+            UPDATE review_like
+            SET is_like = ?
+            WHERE review_id = ? and user_id=?;
+            """;
+    private static final String FIND_BY_REVIEW_ID = " SELECT * FROM review_like WHERE review_id = ?; ";
+    private static final String GET_ALL = " SELECT * FROM review_like; ";
+    private static final String FIND_BY_REVIEW_ID_AND_USER_ID = """
+            SELECT * FROM review_like
+            WHERE review_id = ? and user_id = ?;
+            """;
+    private static final String DELETE_BY_REVIEW_ID_AND_USER_ID = """
+            DELETE FROM review_like
+            WHERE review_id = ? and user_id = ?;
+            """;
+
     @Override
     public ReviewLike create(ReviewLike reviewLike) {
-        jdbcTemplate.update("INSERT INTO review_like (review_id, user_id, is_like) VALUES (?, ?, ?) ",
-                reviewLike.getReviewId(), reviewLike.getUserId(), reviewLike.getIsLike());
+        jdbcTemplate.update(CREATE, reviewLike.getReviewId(), reviewLike.getUserId(), reviewLike.getIsLike());
         return reviewLike;
     }
 
     @Override
     public ReviewLike update(ReviewLike reviewLike) {
-        String sql = " UPDATE review_like " +
-                " SET is_like = ? " +
-                " WHERE review_id = ? and user_id=? ";
-        jdbcTemplate.update(sql, reviewLike.getIsLike(), reviewLike.getReviewId(), reviewLike.getUserId());
+        jdbcTemplate.update(UPDATE, reviewLike.getIsLike(), reviewLike.getReviewId(), reviewLike.getUserId());
         return reviewLike;
     }
 
     @Override
     public List<ReviewLike> findByReviewId(long reviewId) {
-        return jdbcTemplate.query("SELECT * FROM review_like WHERE review_id = ?",
-                reviewLikeRowMapper, reviewId);
+        return jdbcTemplate.query(FIND_BY_REVIEW_ID, reviewLikeRowMapper, reviewId);
     }
 
     @Override
-    public List<ReviewLike> all() {
-        return jdbcTemplate.query("SELECT * FROM review_like", reviewLikeRowMapper);
+    public List<ReviewLike> getAll() {
+        return jdbcTemplate.query(GET_ALL, reviewLikeRowMapper);
     }
 
     @Override
     public ReviewLike findByReviewIdAndUserId(long reviewId, long userId) {
-        return jdbcTemplate.query("SELECT * FROM review_like WHERE review_id = ? and user_id = ?",
+        return jdbcTemplate.query(FIND_BY_REVIEW_ID_AND_USER_ID,
                 reviewLikeRowMapper, reviewId, userId).stream().findFirst().orElse(null);
     }
 
     @Override
     public void deleteByReviewIdAndUserId(long reviewId, long userId) {
-        jdbcTemplate.update("DELETE FROM review_like WHERE review_id = ? and user_id = ?", reviewId, userId);
+        jdbcTemplate.update(DELETE_BY_REVIEW_ID_AND_USER_ID, reviewId, userId);
     }
 
     @Override

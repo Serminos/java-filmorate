@@ -8,7 +8,10 @@ import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.dto.FilmDto;
 import ru.yandex.practicum.filmorate.service.FilmService;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
 @RestController
 @RequestMapping(value = "/films")
@@ -36,13 +39,13 @@ public class FilmController {
     }
 
     @GetMapping
-    public List<FilmDto> all() {
-        return filmService.all();
+    public List<FilmDto> getAll() {
+        return filmService.getAll();
     }
 
     @GetMapping("/{id}")
-    public FilmDto getFilmById(@PathVariable long id) {
-        return filmService.getFilmById(id);
+    public FilmDto getById(@PathVariable long id) {
+        return filmService.getById(id);
     }
 
     @PutMapping("/{id}/like/{userId}")
@@ -58,9 +61,16 @@ public class FilmController {
     }
 
     @GetMapping("/popular")
-    public List<FilmDto> popularFilms(@RequestParam(value = "count", defaultValue = "10") long count) {
-        log.debug("Популярные фильмы - Топ - [{}]", count);
-        return filmService.findPopularFilms(count);
+    public List<FilmDto> getPopularFilmsByParams(@RequestParam(defaultValue = "10") Long count,
+                                                 @RequestParam(required = false) Long genreId,
+                                                 @RequestParam(required = false) Long year) {
+        log.debug("Получен запрос на получение самых популярных фильмов в количестве = [{}], " +
+                "возможна фильтрация по параметрам: жанру с id [{}] и/или году [{}]", count, genreId, year);
+        Map<String, Long> params = new HashMap<>();
+        Optional.ofNullable(genreId).ifPresent(v -> params.put("genreId", genreId));
+        Optional.ofNullable(year).ifPresent(v -> params.put("year", year));
+
+        return filmService.getPopularFilmsByParams(params, count);
     }
 
     @GetMapping("/common")
@@ -70,16 +80,16 @@ public class FilmController {
     }
 
     @GetMapping("/director/{directorId}")
-    public List<FilmDto> getFilmsByDirectorIdWithSort(@PathVariable int directorId, @RequestParam String sortBy) {
+    public List<FilmDto> getFilmsByDirectorIdWithSort(@PathVariable long directorId, @RequestParam String sortBy) {
         log.debug("Получен запрос на получение всех фильмов режиссера с directorId = [{}], сортировка по [{}]",
                 directorId, sortBy);
         return filmService.getFilmsByDirectorIdWithSort(directorId, sortBy);
     }
 
     @DeleteMapping("/{id}")
-    public void deleteFilm(@PathVariable long id) {
+    public void deleteById(@PathVariable long id) {
         log.debug("Удаление фильма с идентификатором [{}]", id);
-        filmService.deleteFilm(id);
+        filmService.deleteById(id);
     }
 
     @GetMapping("/search")

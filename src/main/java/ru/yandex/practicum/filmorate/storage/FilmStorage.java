@@ -5,27 +5,28 @@ import ru.yandex.practicum.filmorate.model.Film;
 import java.util.List;
 
 public interface FilmStorage {
+
     Film create(Film film);
 
     Film update(Film film);
 
-    List<Film> all();
+    List<Film> getAll();
 
-    Film findById(long filmId);
-
-    boolean deleteLikeByUserId(long filmId, long userId);
+    Film findByFilmId(long filmId);
 
     void clear();
 
-    List<Film> findByIds(List<Long> ids);
+    List<Film> findByFilmIdIn(List<Long> filmsId);
 
-    List<Film> findFilmsByDirector(int directorId, String sortBy);
+    List<Film> findByDirectorIdWithSort(long directorId, String sortBy);
 
     List<Film> findByNameContainingIgnoreCase(String query);
 
-    List<Film> findPopularByFilmIdIn(List<Long> ids);
+    List<Film> findPopularByFilmIdIn(List<Long> filmsId, long limit);
 
-    void deleteFilm(long filmId);
+    void deleteByFilmId(long filmId);
 
-    List<Film> findPopular(long limit);
+    List<Long> findPopularFilmsIdWithLimit(long limit);
+
+    List<Long> findFilmsIdByYear(int year);
 }
