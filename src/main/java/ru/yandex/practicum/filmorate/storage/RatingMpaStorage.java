@@ -6,9 +6,9 @@ import java.util.List;
 import java.util.Set;
 
 public interface RatingMpaStorage {
-    List<RatingMpa> all();
+    List<RatingMpa> getAll();
 
-    RatingMpa findRatingMpaById(long ratingMpaId);
+    RatingMpa findById(long ratingMpaId);
 
-    List<RatingMpa> findRatingMpaByIds(Set<Long> ratingMpaId);
+    List<RatingMpa> findByIds(Set<Long> ratingMpaId);
 }

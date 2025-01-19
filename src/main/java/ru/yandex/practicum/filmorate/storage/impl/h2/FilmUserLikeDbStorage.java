@@ -19,15 +19,32 @@ class FilmUserLikeDbStorage implements FilmUserLikeStorage {
     private final JdbcTemplate jdbcTemplate;
     private final FilmUserLikeRowMapper filmUserLikeRowMapper;
 
+    private static final String ADD = " INSERT INTO film_user_like (film_id, user_id) VALUES (?, ?) ";
+    private static final String DELETE = " DELETE FROM film_user_like WHERE film_id = ? AND user_id = ? ";
+    private static final String GET_ALL = " SELECT * FROM film_user_like ";
+    private static final String FIND_USER_LIKE = " SELECT * FROM film_user_like WHERE film_id = ?";
+    private static final String FIND_FILM_LIKE = " SELECT * FROM film_user_like WHERE user_id = ?";
+    private static final String FIND_USER_LIKED_FILMS_IDS = "SELECT film_id FROM film_user_like WHERE user_id = ?";
+    private static final String FIND_USER_IDS_INTERSECT_BY_FILMS_LIKES_WITH_USER = "SELECT user_id " +
+            "FROM film_user_like WHERE user_id != ? " +
+            "and film_id IN (?)";
+    private static final String DELETE_ALL_LIKES_BY_USER_ID = "DELETE FROM film_user_like WHERE user_id = ?";
+    private static final String DELETE_ALL_LIKES_BY_FILM_ID = "DELETE FROM film_user_like WHERE film_id = ?";
+    private static final String FIND_POPULAR_FILM_IDS = " SELECT FILM_ID " +
+            " FROM FILM_USER_LIKE " +
+            " GROUP BY FILM_ID " +
+            " ORDER BY COUNT(USER_ID) DESC " +
+            " LIMIT ?;";
+
+
     @Override
     public void add(long filmId, long userId) {
-        jdbcTemplate.update(" INSERT INTO film_user_like (film_id, user_id) VALUES (?, ?) ", filmId, userId);
+        jdbcTemplate.update(ADD, filmId, userId);
     }
 
     @Override
-    public void remove(long filmId, long userId) {
-        jdbcTemplate.update(" DELETE FROM film_user_like WHERE film_id = ? AND user_id = ? ", filmId, userId);
-
+    public void delete(long filmId, long userId) {
+        jdbcTemplate.update(DELETE, filmId, userId);
     }
 
     @Override
@@ -37,26 +54,23 @@ class FilmUserLikeDbStorage implements FilmUserLikeStorage {
     }
 
     @Override
-    public List<FilmUserLike> all() {
-        return jdbcTemplate.query(" SELECT * FROM film_user_like ", filmUserLikeRowMapper);
+    public List<FilmUserLike> getAll() {
+        return jdbcTemplate.query(GET_ALL, filmUserLikeRowMapper);
     }
 
     @Override
     public List<FilmUserLike> findUserLikeByFilmId(long filmId) {
-        return jdbcTemplate.query(" SELECT * FROM film_user_like WHERE film_id = ?",
-                filmUserLikeRowMapper, filmId);
+        return jdbcTemplate.query(FIND_USER_LIKE, filmUserLikeRowMapper, filmId);
     }
 
     @Override
     public List<FilmUserLike> findFilmLikeByUserId(long userId) {
-        return jdbcTemplate.query(" SELECT * FROM film_user_like WHERE user_id = ?",
-                filmUserLikeRowMapper, userId);
+        return jdbcTemplate.query(FIND_FILM_LIKE, filmUserLikeRowMapper, userId);
     }
 
     @Override
-    public Set<Long> findUserLikedFilmIds(long userId) {
-        String sql = "SELECT film_id FROM film_user_like WHERE user_id = ?";
-        return new HashSet<>(jdbcTemplate.queryForList(sql, Long.class, userId));
+    public Set<Long> findUserLikedFilmIdsByUserId(long userId) {
+        return new HashSet<>(jdbcTemplate.queryForList(FIND_USER_LIKED_FILMS_IDS, Long.class, userId));
     }
 
     @Override
@@ -64,30 +78,23 @@ class FilmUserLikeDbStorage implements FilmUserLikeStorage {
         if (filmIds.isEmpty()) {
             return new HashSet<>();
         }
-        String sql = "SELECT user_id " +
-                "FROM film_user_like WHERE user_id != ? " +
-                "and film_id IN (?)";
-        return new HashSet<>(jdbcTemplate.queryForList(sql, Long.class, userId, filmIds.toArray()));
+        return new HashSet<>(jdbcTemplate.queryForList(FIND_USER_IDS_INTERSECT_BY_FILMS_LIKES_WITH_USER,
+                Long.class, userId, filmIds.toArray()));
     }
 
     @Override
-    public void removeAllLikesByUserId(long userId) {
-        jdbcTemplate.update("DELETE FROM film_user_like WHERE user_id = ?", userId);
+    public void deleteAllLikesByUserId(long userId) {
+        jdbcTemplate.update(DELETE_ALL_LIKES_BY_USER_ID, userId);
     }
 
     @Override
-    public void removeAllLikesByFilmId(long filmId) {
-        jdbcTemplate.update("DELETE FROM film_user_like WHERE film_id = ?", filmId);
+    public void deleteAllLikesByFilmId(long filmId) {
+        jdbcTemplate.update(DELETE_ALL_LIKES_BY_FILM_ID, filmId);
     }
 
     @Override
-    public List<Long> popularFilmIds(long limit) {
-        String sql = " SELECT FILM_ID " +
-                " FROM FILM_USER_LIKE " +
-                " GROUP BY FILM_ID " +
-                " ORDER BY COUNT(USER_ID) DESC " +
-                " LIMIT ?;";
-        return jdbcTemplate.query(sql, (rs, rowNum) ->
+    public List<Long> findPopularFilmIds(long limit) {
+        return jdbcTemplate.query(FIND_POPULAR_FILM_IDS, (rs, rowNum) ->
                 rs.getLong("FILM_ID"), limit);
     }
 

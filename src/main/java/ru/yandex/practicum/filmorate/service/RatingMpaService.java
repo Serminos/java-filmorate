@@ -19,12 +19,12 @@ public class RatingMpaService {
         this.ratingMpaStorage = ratingMpaStorage;
     }
 
-    public List<MpaDto> findAllRatingMpa() {
-        return ratingMpaStorage.all().stream().map(RatingMpaMapper::mapToMpaDto).toList();
+    public List<MpaDto> getAllMpa() {
+        return ratingMpaStorage.getAll().stream().map(RatingMpaMapper::mapToMpaDto).toList();
     }
 
-    public MpaDto findRatingMpaById(int id) {
-        RatingMpa ratingMpa = ratingMpaStorage.findRatingMpaById(id);
+    public MpaDto getMpaById(int id) {
+        RatingMpa ratingMpa = ratingMpaStorage.findById(id);
         if (ratingMpa == null) {
             throw new NotFoundException("Рейтинг MPA не найден.");
         }

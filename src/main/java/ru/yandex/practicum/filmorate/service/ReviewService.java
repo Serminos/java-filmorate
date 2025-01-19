@@ -58,7 +58,7 @@ public class ReviewService {
         if (userStorage.findById(reviewDto.getUserId()) == null) {
             throw new NotFoundException("Не найден пользователь с ID - [" + reviewDto.getUserId() + "]");
         }
-        if (filmService.getFilmById(reviewDto.getFilmId()) == null) {
+        if (filmService.getById(reviewDto.getFilmId()) == null) {
             throw new NotFoundException("Не найден фильм с ID - [" + reviewDto.getUserId() + "]");
         }
     }
@@ -83,7 +83,7 @@ public class ReviewService {
         if (review == null) {
             throw new NotFoundException("Отзыв не найден.");
         }
-        reviewStorage.deleteReview(reviewId);
+        reviewStorage.deleteById(reviewId);
         eventStorage.create(review.getUserId(), EventType.REVIEW, Operation.REMOVE, reviewId);
     }
 
@@ -137,7 +137,7 @@ public class ReviewService {
     }
 
     public List<ReviewDto> all(long limit) {
-        List<Review> reviews = reviewStorage.all(limit);
+        List<Review> reviews = reviewStorage.getAll(limit);
         if (reviews.isEmpty()) {
             return new ArrayList<>();
         }

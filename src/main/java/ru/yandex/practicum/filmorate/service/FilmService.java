@@ -50,9 +50,9 @@ public class FilmService {
         this.filmGenreStorage = filmGenreStorage;
         this.filmUserLikeStorage = filmUserLikeStorage;
         this.eventStorage = eventStorage;
-        this.cacheRatingMpa = ratingMpaStorage.all().stream()
+        this.cacheRatingMpa = ratingMpaStorage.getAll().stream()
                 .collect(Collectors.toMap(RatingMpa::getRatingMpaId, Function.identity()));
-        this.cacheGenre = genreStorage.all().stream()
+        this.cacheGenre = genreStorage.getAll().stream()
                 .collect(Collectors.toMap(Genre::getGenreId, Function.identity()));
         this.directorStorage = directorStorage;
         this.filmDirectorStorage = filmDirectorStorage;
@@ -85,7 +85,7 @@ public class FilmService {
     }
 
     private Set<DirectorDto> getDirectorDtoByFilmId(long id) {
-        Set<Director> directors = directorStorage.getDirectorsByFilmId(id);
+        Set<Director> directors = directorStorage.findDirectorsByFilmId(id);
         if (directors == null) {
             return Collections.emptySet();
         } else {
@@ -146,12 +146,12 @@ public class FilmService {
     private List<GenreDto> updateFilmGenre(Film film, List<GenreDto> genreDtos) {
         List<GenreDto> genreDtosUpdated = new ArrayList<>();
         if (genreDtos == null) return genreDtosUpdated;
-        filmGenreStorage.removeGenreByFilmId(film.getId());
+        filmGenreStorage.deleteGenreByFilmId(film.getId());
         Set<Long> genreIds = genreDtos.stream()
                 .map(GenreDto::getId)
                 .collect(Collectors.toSet());
         for (Long genreId : genreIds) {
-            filmGenreStorage.addGenre(film.getId(), genreId);
+            filmGenreStorage.add(film.getId(), genreId);
         }
         genreDtosUpdated = filmGenreStorage.findGenreByFilmId(film.getId()).stream()
                 .map(item -> new GenreDto(item.getGenreId(), cacheGenre.get(item.getGenreId()).getName()))
@@ -159,12 +159,12 @@ public class FilmService {
         return genreDtosUpdated;
     }
 
-    public List<FilmDto> all() {
-        List<Film> films = filmStorage.all();
+    public List<FilmDto> getAll() {
+        List<Film> films = filmStorage.getAll();
         return mapFilmsToFilmDtosAndAddDopInfo(films);
     }
 
-    public FilmDto getFilmById(long filmId) {
+    public FilmDto getById(long filmId) {
         checkFilmExists(filmId);
         Film film = filmStorage.findById(filmId);
         return mapFilmsToFilmDtosAndAddDopInfo(Collections.singletonList(film)).get(0);
@@ -192,7 +192,7 @@ public class FilmService {
     public void deleteLike(long filmId, long userId) {
         checkFilmExists(filmId);
         checkUserExists(userId);
-        filmUserLikeStorage.remove(filmId, userId);
+        filmUserLikeStorage.delete(filmId, userId);
         eventStorage.create(userId, EventType.LIKE, Operation.REMOVE, filmId);
     }
 
@@ -245,7 +245,7 @@ public class FilmService {
         List<Long> filteredFilmsId;
         List<Film> results = new ArrayList<>();
         if (params.size() == 0) {
-            filteredFilmsId = filmUserLikeStorage.popularFilmIds(limit);
+            filteredFilmsId = filmUserLikeStorage.findPopularFilmIds(limit);
         } else {
             filteredFilmsId = findFilmsIdByParamsWithAndCondition(params, limit);
         }
@@ -308,7 +308,7 @@ public class FilmService {
             throw new NotFoundException("Режиссер с id = " + directorId + " не найден");
         }
 
-        List<Film> filmsByDirector = filmStorage.findFilmsByDirector(directorId, sortBy);
+        List<Film> filmsByDirector = filmStorage.findFilmsByDirectorId(directorId, sortBy);
         return mapFilmsToFilmDtosAndAddDopInfo(filmsByDirector);
     }
 
@@ -334,7 +334,7 @@ public class FilmService {
         return mapFilmsToFilmDtosAndAddDopInfo(filmStorage.findPopularByFilmIdIn(filmIds.stream().toList()));
     }
 
-    public List<FilmDto> getRecommendations(long userId) {
+    public List<FilmDto> getFilmRecommendations(long userId) {
         checkUserExists(userId);
 
         Set<Long> currentUserLikesFilmIds = getCurrentUserLikes(userId);
@@ -352,7 +352,7 @@ public class FilmService {
     }
 
     private Set<Long> getCurrentUserLikes(long userId) {
-        Set<Long> currentUserLikes = filmUserLikeStorage.findUserLikedFilmIds(userId);
+        Set<Long> currentUserLikes = filmUserLikeStorage.findUserLikedFilmIdsByUserId(userId);
         log.debug("Пользователь с ID [{}] лайкал фильмы с ID: {}", userId, currentUserLikes);
         return currentUserLikes;
     }
@@ -371,7 +371,7 @@ public class FilmService {
         long maxCommonLikes = 0L;
 
         for (Long otherUserId : otherUsers) {
-            Set<Long> otherUserLikes = filmUserLikeStorage.findUserLikedFilmIds(otherUserId);
+            Set<Long> otherUserLikes = filmUserLikeStorage.findUserLikedFilmIdsByUserId(otherUserId);
             Long commonLikes = calculateCommonLikes(currentUserLikes, otherUserLikes);
 
             if (commonLikes > maxCommonLikes) {
@@ -393,16 +393,16 @@ public class FilmService {
     }
 
     private Set<Long> getRecommendedFilmIds(Set<Long> currentUserLikes, Long mostSimilarUserId) {
-        Set<Long> similarUserLikes = filmUserLikeStorage.findUserLikedFilmIds(mostSimilarUserId);
+        Set<Long> similarUserLikes = filmUserLikeStorage.findUserLikedFilmIdsByUserId(mostSimilarUserId);
         Set<Long> recommendedFilmIds = new HashSet<>(similarUserLikes);
         recommendedFilmIds.removeAll(currentUserLikes);
         log.debug("Рекомендованные фильмы (IDs): {}", recommendedFilmIds);
         return recommendedFilmIds;
     }
 
-    public void deleteFilm(long filmId) {
-        filmUserLikeStorage.removeAllLikesByFilmId(filmId);
-        filmGenreStorage.removeGenreByFilmId(filmId);
-        filmStorage.deleteFilm(filmId);
+    public void deleteById(long filmId) {
+        filmUserLikeStorage.deleteAllLikesByFilmId(filmId);
+        filmGenreStorage.deleteGenreByFilmId(filmId);
+        filmStorage.deleteById(filmId);
     }
 }

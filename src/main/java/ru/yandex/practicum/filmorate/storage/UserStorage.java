@@ -11,9 +11,9 @@ public interface UserStorage {
 
     User findById(long userId);
 
-    Collection<User> all();
+    Collection<User> getAll();
 
-    void deleteUser(long id);
+    void deleteById(long userId);
 
     void clear();
 }

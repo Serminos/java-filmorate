@@ -19,23 +19,28 @@ class RatingMpaDbStorage implements RatingMpaStorage {
     private final JdbcTemplate jdbcTemplate;
     private final RatingMpaRowMapper ratingMpaRowMapper;
 
+    private static final String GET_ALL = " SELECT * FROM rating_mpa ";
+    private static final String FIND_BY_ID = "SELECT * FROM rating_mpa WHERE rating_mpa_id = ?";
+    private static final String FIND_BY_IDS = "SELECT * FROM EMPLOYEE WHERE id IN (%s)";
+
+
     @Override
-    public List<RatingMpa> all() {
-        return jdbcTemplate.query(" SELECT * FROM rating_mpa ", ratingMpaRowMapper);
+    public List<RatingMpa> getAll() {
+        return jdbcTemplate.query(GET_ALL, ratingMpaRowMapper);
     }
 
     @Override
-    public RatingMpa findRatingMpaById(long ratingMpaId) {
-        return jdbcTemplate.query("SELECT * FROM rating_mpa WHERE rating_mpa_id = ?",
+    public RatingMpa findById(long ratingMpaId) {
+        return jdbcTemplate.query(FIND_BY_ID,
                 ratingMpaRowMapper, ratingMpaId).stream().findFirst().orElse(null);
     }
 
     @Override
-    public List<RatingMpa> findRatingMpaByIds(Set<Long> ratingMpaIds) {
+    public List<RatingMpa> findByIds(Set<Long> ratingMpaIds) {
         String inSql = String.join(",", Collections.nCopies(ratingMpaIds.size(), "?"));
 
         List<RatingMpa> ratingMpaList = jdbcTemplate.query(
-                String.format("SELECT * FROM EMPLOYEE WHERE id IN (%s)", inSql), ratingMpaRowMapper,
+                String.format(FIND_BY_IDS, inSql), ratingMpaRowMapper,
                 ratingMpaIds.toArray());
         return ratingMpaList;
     }

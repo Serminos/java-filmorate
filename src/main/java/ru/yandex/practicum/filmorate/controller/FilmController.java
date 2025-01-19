@@ -39,13 +39,13 @@ public class FilmController {
     }
 
     @GetMapping
-    public List<FilmDto> all() {
-        return filmService.all();
+    public List<FilmDto> getAll() {
+        return filmService.getAll();
     }
 
     @GetMapping("/{id}")
-    public FilmDto getFilmById(@PathVariable long id) {
-        return filmService.getFilmById(id);
+    public FilmDto getById(@PathVariable long id) {
+        return filmService.getById(id);
     }
 
     @PutMapping("/{id}/like/{userId}")
@@ -87,9 +87,9 @@ public class FilmController {
     }
 
     @DeleteMapping("/{id}")
-    public void deleteFilm(@PathVariable long id) {
+    public void deleteById(@PathVariable long id) {
         log.debug("Удаление фильма с идентификатором [{}]", id);
-        filmService.deleteFilm(id);
+        filmService.deleteById(id);
     }
 
     @GetMapping("/search")

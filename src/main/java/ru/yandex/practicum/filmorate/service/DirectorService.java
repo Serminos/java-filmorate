@@ -22,7 +22,7 @@ public class DirectorService {
     private final DirectorStorage directorStorage;
 
     public List<DirectorDto> getAll() {
-        List<Director> directors = directorStorage.getAllDirectors();
+        List<Director> directors = directorStorage.getAll();
 
         List<DirectorDto> allDirectorsDto = new ArrayList<>();
         for (Director director : directors) {
@@ -35,7 +35,7 @@ public class DirectorService {
     public DirectorDto getById(long id) {
         Director director;
         try {
-            director = directorStorage.findDirectorById(id);
+            director = directorStorage.findById(id);
         } catch (EmptyResultDataAccessException e) {
             throw new NotFoundException("Режиссер с id = " + id + " не найден");
         }
@@ -43,7 +43,7 @@ public class DirectorService {
     }
 
     public DirectorDto create(DirectorDto directorDto) {
-        return DirectorMapper.mapToDirectorDto(directorStorage.createDirector(DirectorMapper.mapToDirector(directorDto)));
+        return DirectorMapper.mapToDirectorDto(directorStorage.create(DirectorMapper.mapToDirector(directorDto)));
     }
 
     public DirectorDto update(DirectorDto newDirectorDto) {
@@ -58,11 +58,11 @@ public class DirectorService {
         }
 
 
-        return DirectorMapper.mapToDirectorDto(directorStorage.updateDirector(DirectorMapper.mapToDirector(newDirectorDto)));
+        return DirectorMapper.mapToDirectorDto(directorStorage.update(DirectorMapper.mapToDirector(newDirectorDto)));
     }
 
     public void deleteById(long id) {
-        if (directorStorage.deleteDirectorById(id) == 0) {
+        if (directorStorage.deleteById(id) == 0) {
             log.warn("Попытка удаления: режиссер с id = [{}] не найден", id);
         } else {
             log.trace("Режиссер с id = [{}] успешно удален", id);

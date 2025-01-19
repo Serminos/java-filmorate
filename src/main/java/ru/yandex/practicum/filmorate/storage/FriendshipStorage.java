@@ -9,11 +9,11 @@ public interface FriendshipStorage {
 
     void update(Friendship friendship);
 
-    void remove(Friendship friendship);
+    void delete(Friendship friendship);
 
     void clear();
 
-    List<Friendship> all();
+    List<Friendship> getAll();
 
     List<Friendship> findAllByFromUserId(long fromUserId);
 
@@ -25,5 +25,5 @@ public interface FriendshipStorage {
 
     List<Long> findCommonFriendId(long userId, long otherId);
 
-    void removeAllByUserId(long userId);
+    void deleteAllByUserId(long userId);
 }

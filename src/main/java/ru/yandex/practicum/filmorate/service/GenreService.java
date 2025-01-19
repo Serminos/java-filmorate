@@ -19,12 +19,12 @@ public class GenreService {
         this.genreStorage = genreStorage;
     }
 
-    public List<GenreDto> findAllGenres() {
-        return genreStorage.all().stream().map(GenreMapper::mapToGenreDto).toList();
+    public List<GenreDto> getAllGenres() {
+        return genreStorage.getAll().stream().map(GenreMapper::mapToGenreDto).toList();
     }
 
-    public GenreDto findGenreById(int id) {
-        Genre genre = genreStorage.findGenreById(id);
+    public GenreDto getGenreById(int id) {
+        Genre genre = genreStorage.findById(id);
         if (genre == null) {
             throw new NotFoundException("Жанр не найден.");
         }

@@ -56,9 +56,9 @@ public class UserService {
         return UserMapper.mapToUserDto(userStorage.update(UserMapper.mapToUser(user)));
     }
 
-    public List<UserDto> all() {
+    public List<UserDto> getAll() {
         List<UserDto> userDtos = new ArrayList<>();
-        for (User user : userStorage.all()) {
+        for (User user : userStorage.getAll()) {
             userDtos.add(UserMapper.mapToUserDto(user));
         }
         return userDtos;
@@ -87,11 +87,11 @@ public class UserService {
         checkUserExists(userId);
         checkUserExists(friendId);
         Friendship friendship = new Friendship(userId, friendId, false);
-        friendshipStorage.remove(friendship);
+        friendshipStorage.delete(friendship);
         eventStorage.create(userId, EventType.FRIEND, Operation.REMOVE, friendId);
     }
 
-    public List<UserDto> commonFriends(long userId, long friendId) {
+    public List<UserDto> getCommonFriends(long userId, long friendId) {
         checkUserExists(userId);
         checkUserExists(friendId);
         List<Long> commonFriendsIds = friendshipStorage.findCommonFriendId(userId, friendId);
@@ -111,19 +111,19 @@ public class UserService {
         return friends;
     }
 
-    public List<EventDto> getUserEvent(long userId) {
+    public List<EventDto> getEvent(long userId) {
         checkUserExists(userId);
-        List<Event> events = eventStorage.getUserEvents(userId);
+        List<Event> events = eventStorage.findUserEventsById(userId);
         return events.stream()
                 .map(EventMapper::mapToEventDto)
                 .collect(Collectors.toList());
     }
 
-    public void deleteUser(long userId) {
+    public void deleteUserById(long userId) {
         checkUserExists(userId);
-        friendshipStorage.removeAllByUserId(userId);
-        filmUserLikeStorage.removeAllLikesByUserId(userId);
-        userStorage.deleteUser(userId);
+        friendshipStorage.deleteAllByUserId(userId);
+        filmUserLikeStorage.deleteAllLikesByUserId(userId);
+        userStorage.deleteById(userId);
     }
 
     public UserDto getUserById(long userId) {

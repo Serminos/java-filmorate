@@ -19,16 +19,18 @@ public class EventDbStorage implements EventStorage {
     private final JdbcTemplate jdbcTemplate;
     private final EventRowMapper eventRowMapper;
 
+    private static final String CREATE_EVENT = "INSERT INTO feeds (user_id, timestamp, event_type, operation, entity_id) " +
+            "VALUES (?, ?, ?, ?, ?)";
+    private static final String FIND_USER_EVENTS_BY_ID = "SELECT * FROM feeds WHERE user_id = ?";
+
     @Override
     public void create(long userId, EventType eventType, Operation operation, long entityId) {
         long timestamp = Timestamp.from(Instant.now()).getTime();
-        String sqlQuery = "INSERT INTO feeds (user_id, timestamp, event_type, operation, entity_id) VALUES (?, ?, ?, ?, ?)";
-        jdbcTemplate.update(sqlQuery, userId, timestamp, eventType.name(), operation.name(), entityId);
+        jdbcTemplate.update(CREATE_EVENT, userId, timestamp, eventType.name(), operation.name(), entityId);
     }
 
     @Override
-    public List<Event> getUserEvents(Long id) {
-        String sqlQuery = "SELECT * FROM feeds WHERE user_id = ?";
-        return jdbcTemplate.query(sqlQuery, eventRowMapper, id);
+    public List<Event> findUserEventsById(Long userId) {
+        return jdbcTemplate.query(FIND_USER_EVENTS_BY_ID, eventRowMapper, userId);
     }
 }

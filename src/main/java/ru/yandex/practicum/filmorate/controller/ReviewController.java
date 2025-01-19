@@ -49,8 +49,8 @@ public class ReviewController {
     }
 
     @GetMapping
-    public List<ReviewDto> getReviews(@RequestParam(required = false) Long filmId,
-                                      @RequestParam(defaultValue = "10") Long count) {
+    public List<ReviewDto> getReviewsWithParam(@RequestParam(required = false) Long filmId,
+                                               @RequestParam(defaultValue = "10") Long count) {
         if (filmId == null) {
             log.debug("Получение всех популярных отзывов в количестве [{}]", count);
             return reviewService.all(count);
@@ -61,25 +61,25 @@ public class ReviewController {
     }
 
     @PutMapping("/{id}/like/{userId}")
-    public void addReviewLike(@PathVariable long id, @PathVariable long userId) {
+    public void addLike(@PathVariable long id, @PathVariable long userId) {
         log.debug("Добавление лайка к ревью [{}] - пользователем [{}]", id, userId);
         reviewService.addLike(id, userId);
     }
 
     @DeleteMapping("/{id}/like/{userId}")
-    public void deleteReviewLike(@PathVariable long id, @PathVariable long userId) {
+    public void deleteLike(@PathVariable long id, @PathVariable long userId) {
         log.debug("Удаление лайка к ревью [{}] - пользователем [{}]", id, userId);
         reviewService.deleteLike(id, userId);
     }
 
     @PutMapping("/{id}/dislike/{userId}")
-    public void addReviewDislike(@PathVariable long id, @PathVariable long userId) {
+    public void addDislike(@PathVariable long id, @PathVariable long userId) {
         log.debug("Добавление дизлайка к ревью [{}] - пользователем [{}]", id, userId);
         reviewService.addDislike(id, userId);
     }
 
     @DeleteMapping("/{id}/dislike/{userId}")
-    public void deleteReviewDislike(@PathVariable long id, @PathVariable long userId) {
+    public void deleteDislike(@PathVariable long id, @PathVariable long userId) {
         log.debug("Удаление дизлайка к ревью [{}] - пользователем [{}]", id, userId);
         reviewService.deleteDislike(id, userId);
     }
