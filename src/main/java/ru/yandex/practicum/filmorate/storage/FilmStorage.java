@@ -24,4 +24,8 @@ public interface FilmStorage {
     List<Film> findByNameContainingIgnoreCase(String query);
 
     List<Film> findPopularByFilmIdIn(List<Long> ids);
+
+    void deleteFilm(long filmId);
+
+    List<Film> findPopular(long limit);
 }

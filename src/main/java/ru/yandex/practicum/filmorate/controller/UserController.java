@@ -69,4 +69,16 @@ public class UserController {
         log.debug("Получение ленты событий пользователя - [{}]", id);
         return userService.getUserEvent(id);
     }
+
+    @GetMapping("/{id}")
+    public UserDto getUserById(@PathVariable long id) {
+        log.debug("Получение пользователя с идентификатором - [{}]", id);
+        return userService.getUserById(id);
+    }
+
+    @DeleteMapping("/{id}")
+    public void deleteUser(@PathVariable long id) {
+        log.debug("Удаление пользователя с идентификатором [{}]", id);
+        userService.deleteUser(id);
+    }
 }
