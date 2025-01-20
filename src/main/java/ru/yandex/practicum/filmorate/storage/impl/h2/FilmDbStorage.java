@@ -6,7 +6,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
-import ru.yandex.practicum.filmorate.exception.BadRequestException;
+import ru.yandex.practicum.filmorate.enums.SortBy;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.storage.FilmStorage;
 import ru.yandex.practicum.filmorate.storage.impl.h2.mappers.FilmRowMapper;
@@ -114,7 +114,6 @@ class FilmDbStorage implements FilmStorage {
     @Override
     public List<Film> getAll() {
         return jdbcTemplate.query(GET_ALL, filmRowMapper);
-
     }
 
     @Override
@@ -144,16 +143,12 @@ class FilmDbStorage implements FilmStorage {
     }
 
     @Override
-    public List<Film> findByDirectorIdWithSort(long directorId, String sortBy) {
+    public List<Film> findByDirectorIdWithSort(long directorId, SortBy sortBy) {
 
-        String query;
-        if ("year".equals(sortBy)) {
-            query = GET_FILMS_BY_DIRECTOR_SORT_BY_YEAR;
-        } else if ("likes".equals(sortBy)) {
-            query = GET_FILMS_BY_DIRECTOR_SORT_BY_LIKES;
-        } else {
-            throw new BadRequestException("Сортировка может быть только по двум параметрам: year или likes");
-        }
+        String query = switch (sortBy) {
+            case YEAR -> GET_FILMS_BY_DIRECTOR_SORT_BY_YEAR;
+            case LIKES -> GET_FILMS_BY_DIRECTOR_SORT_BY_LIKES;
+        };
         return jdbcTemplate.query(query, filmRowMapper, directorId);
     }
 
@@ -172,12 +167,18 @@ class FilmDbStorage implements FilmStorage {
         }
         String inSql = String.join(",", Collections.nCopies(filmIds.size(), "?"));
 
-        String sql = String.format(" SELECT f.* " +
-                " FROM FILM f " +
-                " LEFT JOIN FILM_USER_LIKE AS ful ON f.film_id = ful.film_id " +
-                " WHERE f.film_id IN (%s) " +
-                " GROUP BY f.film_id " +
-                " ORDER BY COUNT(ful.film_id) desc ", inSql);
+        String sql = String.format("""
+                WITH like_counts AS (
+                    SELECT film_id, COUNT(*) AS like_count
+                    FROM film_user_like
+                    GROUP BY film_id
+                )
+                SELECT f.*
+                FROM film f
+                LEFT JOIN like_counts lc ON f.film_id = lc.film_id
+                WHERE f.film_id IN (%s)
+                ORDER BY lc.like_count DESC
+                """, inSql);
         if (limit > 0) {
             sql += String.format(" LIMIT %d ", limit);
         }

@@ -6,6 +6,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.dto.FilmDto;
+import ru.yandex.practicum.filmorate.enums.SortBy;
 import ru.yandex.practicum.filmorate.service.FilmService;
 
 import java.util.HashMap;
@@ -80,10 +81,12 @@ public class FilmController {
     }
 
     @GetMapping("/director/{directorId}")
-    public List<FilmDto> getFilmsByDirectorIdWithSort(@PathVariable long directorId, @RequestParam String sortBy) {
+    public List<FilmDto> getFilmsByDirectorIdWithSort(@PathVariable long directorId,
+                                                      @RequestParam String sortBy) {
         log.debug("Получен запрос на получение всех фильмов режиссера с directorId = [{}], сортировка по [{}]",
                 directorId, sortBy);
-        return filmService.getFilmsByDirectorIdWithSort(directorId, sortBy);
+        SortBy sort = SortBy.fromString(sortBy);
+        return filmService.getFilmsByDirectorIdWithSort(directorId, sort);
     }
 
     @DeleteMapping("/{id}")
