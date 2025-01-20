@@ -304,13 +304,7 @@ public class FilmService {
         if (count == null || count == 0) {
             throw new NotFoundException("Режиссер с id = " + directorId + " не найден");
         }
-
-        String query = switch (sortBy) {
-            case YEAR -> filmStorage.getQuerySortByYear();
-            case LIKES -> filmStorage.getQuerySortByLikes();
-        };
-
-        List<Film> filmsByDirector = filmStorage.findByDirectorIdWithSort(directorId, query);
+        List<Film> filmsByDirector = filmStorage.findByDirectorIdWithSort(directorId, sortBy);
         return mapFilmsToFilmDtosAndAddDopInfo(filmsByDirector);
     }
 

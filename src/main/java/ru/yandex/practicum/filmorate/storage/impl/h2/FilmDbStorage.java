@@ -6,6 +6,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
+import ru.yandex.practicum.filmorate.enums.SortBy;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.storage.FilmStorage;
 import ru.yandex.practicum.filmorate.storage.impl.h2.mappers.FilmRowMapper;
@@ -113,7 +114,6 @@ class FilmDbStorage implements FilmStorage {
     @Override
     public List<Film> getAll() {
         return jdbcTemplate.query(GET_ALL, filmRowMapper);
-
     }
 
     @Override
@@ -143,20 +143,14 @@ class FilmDbStorage implements FilmStorage {
     }
 
     @Override
-    public List<Film> findByDirectorIdWithSort(long directorId, String query) {
+    public List<Film> findByDirectorIdWithSort(long directorId, SortBy sortBy) {
+
+        String query = switch (sortBy) {
+            case YEAR -> GET_FILMS_BY_DIRECTOR_SORT_BY_YEAR;
+            case LIKES -> GET_FILMS_BY_DIRECTOR_SORT_BY_LIKES;
+        };
         return jdbcTemplate.query(query, filmRowMapper, directorId);
     }
-
-    @Override
-    public String getQuerySortByYear() {
-        return GET_FILMS_BY_DIRECTOR_SORT_BY_YEAR;
-    }
-
-    @Override
-    public String getQuerySortByLikes() {
-        return GET_FILMS_BY_DIRECTOR_SORT_BY_LIKES;
-    }
-
 
     @Override
     public List<Long> findFilmsIdByYear(int year) {

@@ -1,5 +1,6 @@
 package ru.yandex.practicum.filmorate.storage;
 
+import ru.yandex.practicum.filmorate.enums.SortBy;
 import ru.yandex.practicum.filmorate.model.Film;
 
 import java.util.List;
@@ -18,11 +19,7 @@ public interface FilmStorage {
 
     List<Film> findByFilmIdIn(List<Long> filmsId);
 
-    List<Film> findByDirectorIdWithSort(long directorId, String query);
-
-    String getQuerySortByYear();
-
-    String getQuerySortByLikes();
+    List<Film> findByDirectorIdWithSort(long directorId, SortBy sortBy);
 
     List<Film> findByNameContainingIgnoreCase(String query);
 
