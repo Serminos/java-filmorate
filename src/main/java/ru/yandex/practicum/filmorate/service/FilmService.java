@@ -8,6 +8,7 @@ import ru.yandex.practicum.filmorate.dto.FilmDto;
 import ru.yandex.practicum.filmorate.dto.GenreDto;
 import ru.yandex.practicum.filmorate.enums.EventType;
 import ru.yandex.practicum.filmorate.enums.Operation;
+import ru.yandex.practicum.filmorate.enums.SortBy;
 import ru.yandex.practicum.filmorate.exception.BadRequestException;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.*;
@@ -298,13 +299,18 @@ public class FilmService {
         return mapFilmsToFilmDtosAndAddDopInfo(films);
     }
 
-    public List<FilmDto> getFilmsByDirectorIdWithSort(long directorId, String sortBy) {
+    public List<FilmDto> getFilmsByDirectorIdWithSort(long directorId, SortBy sortBy) {
         Integer count = directorStorage.existsByDirectorId(directorId);
         if (count == null || count == 0) {
             throw new NotFoundException("Режиссер с id = " + directorId + " не найден");
         }
 
-        List<Film> filmsByDirector = filmStorage.findByDirectorIdWithSort(directorId, sortBy);
+        String query = switch (sortBy) {
+            case YEAR -> filmStorage.getQuerySortByYear();
+            case LIKES -> filmStorage.getQuerySortByLikes();
+        };
+
+        List<Film> filmsByDirector = filmStorage.findByDirectorIdWithSort(directorId, query);
         return mapFilmsToFilmDtosAndAddDopInfo(filmsByDirector);
     }
 

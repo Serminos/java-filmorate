@@ -18,7 +18,11 @@ public interface FilmStorage {
 
     List<Film> findByFilmIdIn(List<Long> filmsId);
 
-    List<Film> findByDirectorIdWithSort(long directorId, String sortBy);
+    List<Film> findByDirectorIdWithSort(long directorId, String query);
+
+    String getQuerySortByYear();
+
+    String getQuerySortByLikes();
 
     List<Film> findByNameContainingIgnoreCase(String query);
 

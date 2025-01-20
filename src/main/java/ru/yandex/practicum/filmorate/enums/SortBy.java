@@ -1,25 +1,18 @@
 package ru.yandex.practicum.filmorate.enums;
 
 public enum SortBy {
-    YEAR("year"),
-    LIKES("likes");
-
-    private final String value;
-
-    SortBy(String value) {
-        this.value = value;
-    }
-
-    public String getValue() {
-        return value;
-    }
+    YEAR,
+    LIKES;
 
     public static SortBy fromString(String value) {
-        for (SortBy sortBy : SortBy.values()) {
-            if (sortBy.getValue().equalsIgnoreCase(value)) {
-                return sortBy;
-            }
+        if (value == null) {
+            throw new IllegalArgumentException("Сортировка может быть только по параметрам: year или likes");
         }
-        throw new IllegalArgumentException("Несуществующий тип сортировки: " + value);
+
+        try {
+            return SortBy.valueOf(value.toUpperCase());
+        } catch (IllegalArgumentException e) {
+            throw new IllegalArgumentException("Сортировка может быть только по параметрам: year или likes");
+        }
     }
 }

@@ -6,8 +6,6 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
-import ru.yandex.practicum.filmorate.enums.SortBy;
-import ru.yandex.practicum.filmorate.exception.BadRequestException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.storage.FilmStorage;
 import ru.yandex.practicum.filmorate.storage.impl.h2.mappers.FilmRowMapper;
@@ -145,21 +143,20 @@ class FilmDbStorage implements FilmStorage {
     }
 
     @Override
-    public List<Film> findByDirectorIdWithSort(long directorId, String sortBy) {
-
-        SortBy sortParam;
-        try {
-            sortParam = SortBy.fromString(sortBy);
-        } catch (IllegalArgumentException e) {
-            throw new BadRequestException("Сортировка может быть только по параметрам: year или likes");
-        }
-
-        String query = switch (sortParam) {
-            case YEAR -> GET_FILMS_BY_DIRECTOR_SORT_BY_YEAR;
-            case LIKES -> GET_FILMS_BY_DIRECTOR_SORT_BY_LIKES;
-        };
+    public List<Film> findByDirectorIdWithSort(long directorId, String query) {
         return jdbcTemplate.query(query, filmRowMapper, directorId);
     }
+
+    @Override
+    public String getQuerySortByYear() {
+        return GET_FILMS_BY_DIRECTOR_SORT_BY_YEAR;
+    }
+
+    @Override
+    public String getQuerySortByLikes() {
+        return GET_FILMS_BY_DIRECTOR_SORT_BY_LIKES;
+    }
+
 
     @Override
     public List<Long> findFilmsIdByYear(int year) {
@@ -182,7 +179,7 @@ class FilmDbStorage implements FilmStorage {
                     FROM film_user_like
                     GROUP BY film_id
                 )
-                SELECT f.*, lc.like_count
+                SELECT f.*
                 FROM film f
                 LEFT JOIN like_counts lc ON f.film_id = lc.film_id
                 WHERE f.film_id IN (%s)
