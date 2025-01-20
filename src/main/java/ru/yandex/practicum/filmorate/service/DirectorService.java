@@ -11,8 +11,8 @@ import ru.yandex.practicum.filmorate.model.Director;
 import ru.yandex.practicum.filmorate.service.mapper.DirectorMapper;
 import ru.yandex.practicum.filmorate.storage.DirectorStorage;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -23,13 +23,7 @@ public class DirectorService {
 
     public List<DirectorDto> getAll() {
         List<Director> directors = directorStorage.getAll();
-
-        List<DirectorDto> allDirectorsDto = new ArrayList<>();
-        for (Director director : directors) {
-            DirectorDto directorDto = DirectorMapper.mapToDirectorDto(director);
-            allDirectorsDto.add(directorDto);
-        }
-        return allDirectorsDto;
+        return directors.stream().map(DirectorMapper::mapToDirectorDto).collect(Collectors.toList());
     }
 
     public DirectorDto getById(long id) {

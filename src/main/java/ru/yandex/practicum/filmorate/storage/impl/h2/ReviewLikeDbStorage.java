@@ -18,8 +18,8 @@ class ReviewLikeDbStorage implements ReviewLikeStorage {
     private final ReviewLikeRowMapper reviewLikeRowMapper;
 
     private static final String CREATE = """
-            INSERT INTO review_like
-            (review_id, user_id, is_like)
+            MERGE INTO review_like (review_id, user_id, is_like)
+            KEY (review_id, user_id)
             VALUES (?, ?, ?);
             """;
     private static final String UPDATE = """

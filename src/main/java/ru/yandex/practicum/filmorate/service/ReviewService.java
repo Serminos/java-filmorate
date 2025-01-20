@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.dto.ReviewDto;
 import ru.yandex.practicum.filmorate.enums.EventType;
 import ru.yandex.practicum.filmorate.enums.Operation;
+import ru.yandex.practicum.filmorate.exception.BadRequestException;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Review;
 import ru.yandex.practicum.filmorate.model.ReviewLike;
@@ -16,7 +17,9 @@ import ru.yandex.practicum.filmorate.storage.ReviewStorage;
 import ru.yandex.practicum.filmorate.storage.UserStorage;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -61,6 +64,12 @@ public class ReviewService {
         if (filmService.getById(reviewDto.getFilmId()) == null) {
             throw new NotFoundException("Не найден фильм с ID - [" + reviewDto.getUserId() + "]");
         }
+        if (reviewDto.getContent() == null || reviewDto.getContent().isBlank()) {
+            throw new BadRequestException("Отзыв не может быть пустым");
+        }
+        if (reviewDto.getIsPositive() == null) {
+            throw new BadRequestException("Отзыв должен иметь тип - Положительный или Отрицательный");
+        }
     }
 
     public ReviewDto update(ReviewDto reviewDto) {
@@ -91,18 +100,12 @@ public class ReviewService {
 
     public void addLike(long reviewId, long userId) {
         ReviewLike reviewLike = new ReviewLike(reviewId, userId, true);
-        if (reviewLikeStorage.findByReviewIdAndUserId(reviewId, userId) != null) {
-            reviewLikeStorage.deleteByReviewIdAndUserId(reviewId, userId);
-        }
         reviewLikeStorage.create(reviewLike);
         updateReviewUseful(reviewId);
     }
 
     public void addDislike(long reviewId, long userId) {
         ReviewLike reviewDislike = new ReviewLike(reviewId, userId, false);
-        if (reviewLikeStorage.findByReviewIdAndUserId(reviewId, userId) != null) {
-            reviewLikeStorage.deleteByReviewIdAndUserId(reviewId, userId);
-        }
         reviewLikeStorage.create(reviewDislike);
         updateReviewUseful(reviewId);
     }
@@ -127,7 +130,19 @@ public class ReviewService {
 
     private Integer calculateUsefulByReviewId(long reviewId) {
         List<ReviewLike> reviewLikes = reviewLikeStorage.findByReviewId(reviewId);
-        return reviewLikes.isEmpty() ? 0 : reviewLikes.stream().mapToInt(item -> item.getIsLike() ? 1 : -1).sum();
+
+        Map<Long, Integer> userVotes = new HashMap<>();
+        for (ReviewLike reviewLike : reviewLikes) {
+            userVotes.merge(reviewLike.getUserId(), reviewLike.getIsLike() ? 1 : -1, Integer::sum);
+        }
+
+        return userVotes.values().stream()
+                .mapToInt(likeCount -> {
+                    if (likeCount > 0) return 1;
+                    if (likeCount < 0) return -1;
+                    return 0;
+                })
+                .sum();
     }
 
     public List<ReviewDto> findByFilmId(Long filmId, Long limit) {
