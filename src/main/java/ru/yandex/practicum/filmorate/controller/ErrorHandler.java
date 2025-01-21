@@ -17,9 +17,9 @@ import java.util.Map;
 import java.util.Objects;
 
 @RestControllerAdvice(assignableTypes = {UserController.class, FilmController.class,
-        RatingMpaController.class, GenreController.class})
+        RatingMpaController.class, GenreController.class, ReviewController.class, DirectorController.class})
 public class ErrorHandler {
-    private static final Logger log = LoggerFactory.getLogger(FilmController.class);
+    private static final Logger log = LoggerFactory.getLogger(ErrorHandler.class);
 
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler(MethodArgumentNotValidException.class)
@@ -55,5 +55,4 @@ public class ErrorHandler {
         log.info("Ошибка сервера: {}", e.getMessage());
         return new ErrorResponse("Ошибка сервера: " + e.getMessage());
     }
-
 }

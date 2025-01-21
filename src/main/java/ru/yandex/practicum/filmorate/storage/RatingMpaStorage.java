@@ -3,12 +3,9 @@ package ru.yandex.practicum.filmorate.storage;
 import ru.yandex.practicum.filmorate.model.RatingMpa;
 
 import java.util.List;
-import java.util.Set;
 
 public interface RatingMpaStorage {
-    List<RatingMpa> all();
+    List<RatingMpa> getAll();
 
-    RatingMpa findRatingMpaById(long ratingMpaId);
-
-    List<RatingMpa> findRatingMpaByIds(Set<Long> ratingMpaId);
+    RatingMpa findByRatingMpaId(long ratingMpaId);
 }

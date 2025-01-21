@@ -3,19 +3,27 @@ package ru.yandex.practicum.filmorate.storage;
 import ru.yandex.practicum.filmorate.model.FilmUserLike;
 
 import java.util.List;
+import java.util.Set;
 
 public interface FilmUserLikeStorage {
+
     void add(long filmId, long userId);
 
-    void remove(long filmId, long userId);
+    void delete(long filmId, long userId);
 
     void clear();
 
-    List<FilmUserLike> all();
+    List<FilmUserLike> getAll();
 
-    List<Long> popularFilmIds(long limit);
+    List<FilmUserLike> findByFilmId(long filmId);
 
-    List<FilmUserLike> findUserLikeByFilmId(long filmId);
+    List<FilmUserLike> findByUserId(long userId);
 
-    List<FilmUserLike> findFilmLikeByUserId(long userId);
+    Set<Long> findFilmsIdByUserId(long userId);
+
+    Set<Long> findUsersIdIntersectByFilmsLikesWithUserByUserId(long userId, Set<Long> filmsId);
+
+    void deleteByUserId(long userId);
+
+    void deleteByFilmId(long filmId);
 }

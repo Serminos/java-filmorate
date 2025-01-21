@@ -22,14 +22,32 @@ class UserDbStorage implements UserStorage {
     private final JdbcTemplate jdbcTemplate;
     private final UserRowMapper userRowMapper;
 
+    private static final String CREATE = """
+            INSERT INTO users
+            (email, login, name, birthday)
+            VALUES (?, ?, ?, ?);
+            """;
+    private static final String UPDATE = """
+            UPDATE users
+            SET email = ?, login = ?, name = ?, birthday = ?
+            WHERE user_id = ?;
+            """;
+    private static final String FIND_BY_ID = " SELECT * FROM users WHERE user_id = ?; ";
+    private static final String GET_ALL = " SELECT * FROM users; ";
+    private static final String DELETE_BY_ID_FROM_FRIENDSHIP = """
+            DELETE
+            FROM friendship
+            WHERE from_user_id = ? OR to_user_id = ?;
+            """;
+    private static final String DELETE_BY_ID = " DELETE FROM users WHERE user_id = ?; ";
+
     @Override
     public User create(User user) {
-        String sql = "INSERT INTO users (email, login, name, birthday) VALUES (?, ?, ?, ?)";
 
         KeyHolder keyHolder = new GeneratedKeyHolder();
         jdbcTemplate.update(
                 connection -> {
-                    PreparedStatement ps = connection.prepareStatement(sql, new String[]{"user_id"});
+                    PreparedStatement ps = connection.prepareStatement(CREATE, new String[]{"user_id"});
                     ps.setString(1, user.getEmail());
                     ps.setString(2, user.getLogin());
                     ps.setString(3, user.getName());
@@ -42,26 +60,25 @@ class UserDbStorage implements UserStorage {
 
     @Override
     public User update(User user) {
-        String sql = "UPDATE users SET email = ?, login = ?, name = ?, birthday = ? WHERE user_id = ?";
-        int res = jdbcTemplate.update(sql, user.getEmail(), user.getLogin(), user.getName(),
+        int res = jdbcTemplate.update(UPDATE, user.getEmail(), user.getLogin(), user.getName(),
                 Date.valueOf(user.getBirthday()), user.getId());
         return user;
     }
 
     @Override
-    public User findById(long userId) {
-        return jdbcTemplate.query("SELECT * FROM users WHERE user_id = ?",
-                userRowMapper, userId).stream().findFirst().orElse(null);
+    public User findByUserId(long userId) {
+        return jdbcTemplate.query(FIND_BY_ID, userRowMapper, userId).stream().findFirst().orElse(null);
     }
 
     @Override
-    public List<User> all() {
-        return jdbcTemplate.query("SELECT * FROM users", userRowMapper);
+    public List<User> getAll() {
+        return jdbcTemplate.query(GET_ALL, userRowMapper);
     }
 
     @Override
-    public void deleteUser(long userId) {
-        jdbcTemplate.update("DELETE FROM users WHERE user_id = ?", userId);
+    public void deleteByUserId(long userId) {
+        jdbcTemplate.update(DELETE_BY_ID_FROM_FRIENDSHIP, userId, userId);
+        jdbcTemplate.update(DELETE_BY_ID, userId);
     }
 
     @Override

@@ -17,35 +17,35 @@ class FilmGenreDbStorage implements FilmGenreStorage {
     private final JdbcTemplate jdbcTemplate;
     private final FilmGenreRowMapper filmGenreRowMapper;
 
+    private static final String ADD = " INSERT INTO film_genre (film_id, genre_id) VALUES (?, ?) ";
+    private static final String DELETE_GENRE_BY_FILM_ID = " DELETE FROM film_genre WHERE film_id = ? ";
+    private static final String GET_ALL = " SELECT * FROM film_genre ";
+    private static final String FIND_GENRE_BY_FILM_ID = " SELECT * FROM film_genre WHERE film_id = ?; ";
+    private static final String FIND_FILM_IDS_BY_GENRE_ID = " SELECT film_id FROM film_genre WHERE genre_id = ?; ";
+
     @Override
-    public void addGenre(long filmId, long genreId) {
-        jdbcTemplate.update("INSERT INTO film_genre (film_id, genre_id) VALUES (?, ?) ", filmId, genreId);
+    public void add(long filmId, long genreId) {
+        jdbcTemplate.update(ADD, filmId, genreId);
     }
 
     @Override
-    public void removeGenreByFilmId(long filmId) {
-        jdbcTemplate.update("DELETE FROM film_genre WHERE film_id = ? ", filmId);
+    public void deleteByFilmId(long filmId) {
+        jdbcTemplate.update(DELETE_GENRE_BY_FILM_ID, filmId);
     }
 
     @Override
-    public void removeGenreByFilmIdAndGenreId(long filmId, long genreId) {
-        jdbcTemplate.update("DELETE FROM film_genre WHERE film_id = ? AND genre_id = ? ", filmId, genreId);
+    public List<FilmGenre> getAll() {
+        return jdbcTemplate.query(GET_ALL, filmGenreRowMapper);
     }
 
     @Override
-    public List<FilmGenre> all() {
-        return jdbcTemplate.query(" SELECT * FROM film_genre ", filmGenreRowMapper);
+    public List<FilmGenre> findByFilmId(long filmId) {
+        return jdbcTemplate.query(FIND_GENRE_BY_FILM_ID, filmGenreRowMapper, filmId);
     }
 
     @Override
-    public List<FilmGenre> findGenreByFilmId(long filmId) {
-        return jdbcTemplate.query("SELECT * FROM film_genre WHERE film_id = ?",
-                filmGenreRowMapper, filmId);
-    }
-
-    @Override
-    public List<FilmGenre> findFilmByGenreId(long genreId) {
-        return jdbcTemplate.query("SELECT * FROM film_genre WHERE genre_id = ?",
-                filmGenreRowMapper, genreId);
+    public List<Long> findFilmsIdByGenreId(Long genreId) {
+        return jdbcTemplate.query(FIND_FILM_IDS_BY_GENRE_ID, (rs, rowNum) ->
+                rs.getLong("film_id"), genreId);
     }
 }

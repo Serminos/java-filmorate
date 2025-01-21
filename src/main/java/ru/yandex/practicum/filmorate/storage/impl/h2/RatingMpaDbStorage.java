@@ -8,9 +8,7 @@ import ru.yandex.practicum.filmorate.model.RatingMpa;
 import ru.yandex.practicum.filmorate.storage.RatingMpaStorage;
 import ru.yandex.practicum.filmorate.storage.impl.h2.mappers.RatingMpaRowMapper;
 
-import java.util.Collections;
 import java.util.List;
-import java.util.Set;
 
 @Repository
 @RequiredArgsConstructor
@@ -19,24 +17,17 @@ class RatingMpaDbStorage implements RatingMpaStorage {
     private final JdbcTemplate jdbcTemplate;
     private final RatingMpaRowMapper ratingMpaRowMapper;
 
+    private static final String GET_ALL = " SELECT * FROM rating_mpa; ";
+    private static final String FIND_BY_ID = " SELECT * FROM rating_mpa WHERE rating_mpa_id = ?; ";
+
     @Override
-    public List<RatingMpa> all() {
-        return jdbcTemplate.query(" SELECT * FROM rating_mpa ", ratingMpaRowMapper);
+    public List<RatingMpa> getAll() {
+        return jdbcTemplate.query(GET_ALL, ratingMpaRowMapper);
     }
 
     @Override
-    public RatingMpa findRatingMpaById(long ratingMpaId) {
-        return jdbcTemplate.query("SELECT * FROM rating_mpa WHERE rating_mpa_id = ?",
+    public RatingMpa findByRatingMpaId(long ratingMpaId) {
+        return jdbcTemplate.query(FIND_BY_ID,
                 ratingMpaRowMapper, ratingMpaId).stream().findFirst().orElse(null);
-    }
-
-    @Override
-    public List<RatingMpa> findRatingMpaByIds(Set<Long> ratingMpaIds) {
-        String inSql = String.join(",", Collections.nCopies(ratingMpaIds.size(), "?"));
-
-        List<RatingMpa> ratingMpaList = jdbcTemplate.query(
-                String.format("SELECT * FROM EMPLOYEE WHERE id IN (%s)", inSql), ratingMpaRowMapper,
-                ratingMpaIds.toArray());
-        return ratingMpaList;
     }
 }

@@ -18,12 +18,12 @@ public class RatingMpaController {
     private final RatingMpaService ratingMpaService;
 
     @GetMapping
-    public List<MpaDto> findAllMpa() {
-        return ratingMpaService.findAllRatingMpa();
+    public List<MpaDto> getAllMpa() {
+        return ratingMpaService.getAllMpa();
     }
 
     @GetMapping("/{id}")
-    public MpaDto findMpaById(@PathVariable("id") int id) {
-        return ratingMpaService.findRatingMpaById(id);
+    public MpaDto getMpaById(@PathVariable("id") int id) {
+        return ratingMpaService.getMpaById(id);
     }
 }
